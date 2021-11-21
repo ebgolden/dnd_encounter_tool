@@ -1,10 +1,10 @@
-package pdf_to_html_reader;
+package pdf_to_text_reader;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import java.io.File;
 
-public class PDFToHTML {
+public class PDFToText {
     public static void main(String[] args) {
         PDDocument pdDoc = null;
         PDFTextStripper pdfStripper;
