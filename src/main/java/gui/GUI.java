@@ -4,27 +4,35 @@ import pdf_to_text_reader.PDFToText;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class GUI {
     private static List<CharacterPanel> characterPanels;
     private static JFrame window;
+    private static double currentTurnInitiative;
 
     public static void main(String[] args) {
         characterPanels = new LinkedList<>();
         window = new JFrame();
+        currentTurnInitiative = Integer.MAX_VALUE;
         window.setLayout(new VerticalFlowLayout());
         window.setVisible(true);
-        JButton addCharacters = new JButton("Import more");
-        addCharacters.setVisible(true);
-        window.add(addCharacters);
-        addCharacters.addActionListener(e -> fileChooser());
+        JButton addCharactersButton = new JButton("Import more");
+        addCharactersButton.setVisible(true);
+        window.add(addCharactersButton);
+        addCharactersButton.addActionListener(e -> fileChooser());
+        JButton nextTurnButton = new JButton("Next turn");
+        nextTurnButton.setVisible(true);
+        window.add(nextTurnButton);
+        nextTurnButton.addActionListener(e -> nextTurn());
         fileChooser();
     }
 
@@ -112,6 +120,44 @@ public class GUI {
             p.setVisible(true);
             window.add(p);
         });
+        if (currentTurnInitiative == Integer.MAX_VALUE)
+            currentTurnInitiative = characterPanels.get(0).getCharacterDetail().getInitiative();
+        selectCharacterPanelForTurn();
         window.pack();
+    }
+
+    private static void selectCharacterPanelForTurn() {
+        if (!characterPanels.isEmpty()) {
+            characterPanels.forEach(p -> {
+                if (currentTurnInitiative == p.getCharacterDetail().getInitiative())
+                {
+                    p.setBackground(Color.BLUE);
+                    p.setForeground(Color.WHITE);
+                }
+                else {
+                    p.setBackground(null);
+                    p.setForeground(Color.BLACK);
+                }
+            });
+        }
+    }
+
+    private static void nextTurn() {
+        if (!characterPanels.isEmpty()) {
+            if (currentTurnInitiative == Integer.MAX_VALUE)
+                currentTurnInitiative = characterPanels.get(0).getCharacterDetail().getInitiative();
+            else {
+                for (int i = 0; i < characterPanels.size(); ++i) {
+                    CharacterDetail characterDetail = characterPanels.get(i).getCharacterDetail();
+                    if (currentTurnInitiative == characterDetail.getInitiative()) {
+                        if (i == (characterPanels.size() - 1))
+                            currentTurnInitiative = characterPanels.get(0).getCharacterDetail().getInitiative();
+                        else currentTurnInitiative = characterPanels.get(i + 1).getCharacterDetail().getInitiative();
+                        break;
+                    }
+                }
+            }
+            selectCharacterPanelForTurn();
+        }
     }
 }
