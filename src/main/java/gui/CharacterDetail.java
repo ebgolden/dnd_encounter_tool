@@ -57,6 +57,10 @@ public class CharacterDetail {
         this.hitPoints = hitPoints;
     }
 
+    public File getFile() {
+        return FILE;
+    }
+
     public String toString() {
         return characterName + ","
                 + initiative + ","

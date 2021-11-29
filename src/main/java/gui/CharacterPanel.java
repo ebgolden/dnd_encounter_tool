@@ -5,6 +5,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
+import java.io.IOException;
 import java.text.NumberFormat;
 
 public class CharacterPanel extends JPanel {
@@ -84,6 +85,16 @@ public class CharacterPanel extends JPanel {
         super.add(Box.createRigidArea(new Dimension(5,0)));
         super.add(HIT_POINTS_FIELD);
         HIT_POINTS_FIELD.setPreferredSize(new Dimension(60, 20));
+        super.add(Box.createRigidArea(new Dimension(5,0)));
+        JButton VIEW_FILE_BUTTON = new JButton("Open file");
+        super.add(VIEW_FILE_BUTTON);
+        VIEW_FILE_BUTTON.addActionListener(e -> {
+            try {
+                Desktop.getDesktop().open(CHARACTER_DETAIL.getFile());
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
     }
 
     public CharacterDetail getCharacterDetail() {
