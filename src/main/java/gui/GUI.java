@@ -25,6 +25,16 @@ public class GUI {
         currentTurnInitiative = Integer.MAX_VALUE;
         window.setLayout(new VerticalFlowLayout());
         window.setVisible(true);
+        JPanel headerPanel = new JPanel();
+        headerPanel.setVisible(true);
+        window.add(headerPanel);
+        headerPanel.add(new JLabel("Character Name"));
+        headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
+        headerPanel.add(new JLabel("Initiative"));
+        headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
+        headerPanel.add(new JLabel("Armor Class"));
+        headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
+        headerPanel.add(new JLabel("Hit Points"));
         JButton addCharactersButton = new JButton("Import more");
         addCharactersButton.setVisible(true);
         window.add(addCharactersButton);

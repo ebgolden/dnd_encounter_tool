@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.NumberFormatter;
+import java.awt.*;
 import java.text.NumberFormat;
 
 public class CharacterPanel extends JPanel {
@@ -73,9 +74,16 @@ public class CharacterPanel extends JPanel {
         HIT_POINTS_FIELD.setText(String.valueOf(CHARACTER_DETAIL.getHitPoints()));
         HIT_POINTS_FIELD.addActionListener(e -> CHARACTER_DETAIL.setHitPoints(Integer.parseInt(HIT_POINTS_FIELD.getText())));
         super.add(CHARACTER_NAME_FIELD);
+        CHARACTER_NAME_FIELD.setPreferredSize(new Dimension(90, 20));
+        super.add(Box.createRigidArea(new Dimension(5,0)));
         super.add(INITIATIVE_FIELD);
+        INITIATIVE_FIELD.setPreferredSize(new Dimension(50, 20));
+        super.add(Box.createRigidArea(new Dimension(5,0)));
         super.add(ARMOR_CLASS_FIELD);
+        ARMOR_CLASS_FIELD.setPreferredSize(new Dimension(70, 20));
+        super.add(Box.createRigidArea(new Dimension(5,0)));
         super.add(HIT_POINTS_FIELD);
+        HIT_POINTS_FIELD.setPreferredSize(new Dimension(60, 20));
     }
 
     public CharacterDetail getCharacterDetail() {
