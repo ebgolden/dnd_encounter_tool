@@ -1,16 +1,20 @@
 package gui;
 
+import java.io.File;
+
 public class CharacterDetail {
     private String characterName;
     private double initiative;
     private int initiativeBonus, armorClass, hitPoints;
+    private final File FILE;
 
-    CharacterDetail(String characterName, double initiative, int initiativeBonus, int armorClass, int hitPoints) {
+    CharacterDetail(String characterName, double initiative, int initiativeBonus, int armorClass, int hitPoints, File file) {
         this.characterName = characterName;
         this.initiative = initiative;
         this.initiativeBonus = initiativeBonus;
         this.armorClass = armorClass;
         this.hitPoints = hitPoints;
+        FILE = file;
     }
 
     public String getCharacterName() {
@@ -51,5 +55,14 @@ public class CharacterDetail {
 
     public void setHitPoints(int hitPoints) {
         this.hitPoints = hitPoints;
+    }
+
+    public String toString() {
+        return characterName + ","
+                + initiative + ","
+                + initiativeBonus + ","
+                + armorClass + ","
+                + hitPoints + ","
+                + FILE.getAbsolutePath();
     }
 }
