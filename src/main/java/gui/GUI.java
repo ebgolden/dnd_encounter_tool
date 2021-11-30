@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GUI {
@@ -156,6 +157,14 @@ public class GUI {
 
     private static void selectCharacterPanelForTurn() {
         if (!characterPanels.isEmpty()) {
+            final List<Double> initiatives = characterPanels.stream()
+                    .map(c -> c.getCharacterDetail().getInitiative())
+                    .collect(Collectors.toList());
+            double closestInitiative = initiatives.get(0);
+            for (double initiative : initiatives)
+                if (Math.abs(currentTurnInitiative - initiative) < Math.abs(currentTurnInitiative - closestInitiative))
+                    closestInitiative = initiative;
+            currentTurnInitiative = closestInitiative;
             characterPanels.forEach(p -> {
                 if (currentTurnInitiative == p.getCharacterDetail().getInitiative())
                 {
