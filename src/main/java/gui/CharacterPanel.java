@@ -90,21 +90,93 @@ public class CharacterPanel extends JPanel {
         formatter.setValueClass(Integer.class);
         formatter.setMinimum(0);
         formatter.setMaximum(100);
-        formatter.setAllowsInvalid(false);
-        formatter.setCommitsOnValidEdit(true);
+        formatter.setAllowsInvalid(true);
+        formatter.setCommitsOnValidEdit(false);
         ARMOR_CLASS_FIELD = new JFormattedTextField(formatter);
         ARMOR_CLASS_FIELD.setText(String.valueOf(CHARACTER_DETAIL.getArmorClass()));
-        ARMOR_CLASS_FIELD.addActionListener(e -> CHARACTER_DETAIL.setArmorClass(Integer.parseInt(ARMOR_CLASS_FIELD.getText())));
+        ARMOR_CLASS_FIELD.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {}
+
+            @Override
+            public void keyPressed(KeyEvent e) {}
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    if (!ARMOR_CLASS_FIELD.getText().equals("")) {
+                        String armorClassString = ARMOR_CLASS_FIELD.getText().replaceAll("[^\\d]", "");
+                        int armorClass = Integer.parseInt(armorClassString);
+                        if (armorClass != CHARACTER_DETAIL.getArmorClass()) {
+                            CHARACTER_DETAIL.setArmorClass(armorClass);
+                            GUI.sortCharacterPanels();
+                        }
+                    }
+                }
+            }
+        });
+        ARMOR_CLASS_FIELD.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {}
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (!ARMOR_CLASS_FIELD.getText().equals("")) {
+                    String armorClassString = ARMOR_CLASS_FIELD.getText().replaceAll("[^\\d]", "");
+                    int armorClass = Integer.parseInt(armorClassString);
+                    if (armorClass != CHARACTER_DETAIL.getArmorClass()) {
+                        CHARACTER_DETAIL.setArmorClass(armorClass);
+                        GUI.sortCharacterPanels();
+                    }
+                }
+            }
+        });
         format = NumberFormat.getInstance();
         formatter = new NumberFormatter(format);
         formatter.setValueClass(Integer.class);
         formatter.setMinimum(0);
         formatter.setMaximum(1000);
-        formatter.setAllowsInvalid(false);
-        formatter.setCommitsOnValidEdit(true);
+        formatter.setAllowsInvalid(true);
+        formatter.setCommitsOnValidEdit(false);
         HIT_POINTS_FIELD = new JFormattedTextField(formatter);
         HIT_POINTS_FIELD.setText(String.valueOf(CHARACTER_DETAIL.getHitPoints()));
-        HIT_POINTS_FIELD.addActionListener(e -> CHARACTER_DETAIL.setHitPoints(Integer.parseInt(HIT_POINTS_FIELD.getText())));
+        HIT_POINTS_FIELD.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {}
+
+            @Override
+            public void keyPressed(KeyEvent e) {}
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    if (!HIT_POINTS_FIELD.getText().equals("")) {
+                        String hitPointsString = HIT_POINTS_FIELD.getText().replaceAll("[^\\d]", "");
+                        int hitPoints = Integer.parseInt(hitPointsString);
+                        if (hitPoints != CHARACTER_DETAIL.getHitPoints()) {
+                            CHARACTER_DETAIL.setHitPoints(hitPoints);
+                            GUI.sortCharacterPanels();
+                        }
+                    }
+                }
+            }
+        });
+        HIT_POINTS_FIELD.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {}
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (!HIT_POINTS_FIELD.getText().equals("")) {
+                    String hitPointsString = HIT_POINTS_FIELD.getText().replaceAll("[^\\d]", "");
+                    int hitPoints = Integer.parseInt(hitPointsString);
+                    if (hitPoints != CHARACTER_DETAIL.getHitPoints()) {
+                        CHARACTER_DETAIL.setHitPoints(hitPoints);
+                        GUI.sortCharacterPanels();
+                    }
+                }
+            }
+        });
         super.add(CHARACTER_NAME_FIELD);
         CHARACTER_NAME_FIELD.setPreferredSize(new Dimension(90, 20));
         super.add(Box.createRigidArea(new Dimension(5,0)));
