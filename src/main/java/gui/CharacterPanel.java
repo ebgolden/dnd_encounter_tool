@@ -1,10 +1,12 @@
 package gui;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.text.NumberFormat;
 
@@ -22,35 +24,64 @@ public class CharacterPanel extends JPanel {
         formatter.setValueClass(Double.class);
         formatter.setMinimum(-100.5);
         formatter.setMaximum(100.5);
-        formatter.setAllowsInvalid(false);
-        formatter.setCommitsOnValidEdit(true);
+        formatter.setAllowsInvalid(true);
+        formatter.setCommitsOnValidEdit(false);
         INITIATIVE_FIELD = new JFormattedTextField(formatter);
         INITIATIVE_FIELD.setText(String.valueOf(CHARACTER_DETAIL.getInitiative()));
-        INITIATIVE_FIELD.getDocument().addDocumentListener(new DocumentListener() {
+        INITIATIVE_FIELD.addKeyListener(new KeyListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
-                if (!INITIATIVE_FIELD.getText().equals("") && (Double.parseDouble(INITIATIVE_FIELD.getText()) != CHARACTER_DETAIL.getInitiative())) {
-                    CHARACTER_DETAIL.setInitiative(Double.parseDouble(INITIATIVE_FIELD.getText()));
-                    GUI.sortCharacterPanels();
-                    INITIATIVE_FIELD.requestFocusInWindow();
-                }
-            }
+            public void keyTyped(KeyEvent e) {}
 
             @Override
-            public void removeUpdate(DocumentEvent e) {
-                if (!INITIATIVE_FIELD.getText().equals("") && (Double.parseDouble(INITIATIVE_FIELD.getText()) != CHARACTER_DETAIL.getInitiative())) {
-                    CHARACTER_DETAIL.setInitiative(Double.parseDouble(INITIATIVE_FIELD.getText()));
-                    GUI.sortCharacterPanels();
-                    INITIATIVE_FIELD.requestFocusInWindow();
-                }
-            }
+            public void keyPressed(KeyEvent e) {}
 
             @Override
-            public void changedUpdate(DocumentEvent e) {
-                if (!INITIATIVE_FIELD.getText().equals("") && (Double.parseDouble(INITIATIVE_FIELD.getText()) != CHARACTER_DETAIL.getInitiative())) {
-                    CHARACTER_DETAIL.setInitiative(Double.parseDouble(INITIATIVE_FIELD.getText()));
-                    GUI.sortCharacterPanels();
-                    INITIATIVE_FIELD.requestFocusInWindow();
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    if (!INITIATIVE_FIELD.getText().equals("") && !INITIATIVE_FIELD.getText().equals(".") && !INITIATIVE_FIELD.getText().equals("-")) {
+                        String initiativeString = INITIATIVE_FIELD.getText().replaceAll("[^\\d.-]", "");
+                        if (initiativeString.contains(".")) {
+                            initiativeString = initiativeString
+                                    .replaceFirst("\\.", "A")
+                                    .replace(".", "")
+                                    .replace("A", ".");
+                        }
+                        if (initiativeString.contains("-")) {
+                            initiativeString = initiativeString.replaceAll("-", "");
+                            initiativeString = "-" + initiativeString;
+                        }
+                        double initiative = Double.parseDouble(initiativeString);
+                        if (initiative != CHARACTER_DETAIL.getInitiative()) {
+                            CHARACTER_DETAIL.setInitiative(initiative);
+                            GUI.sortCharacterPanels();
+                        }
+                    }
+                }
+            }
+        });
+        INITIATIVE_FIELD.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {}
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (!INITIATIVE_FIELD.getText().equals("") && !INITIATIVE_FIELD.getText().equals(".") && !INITIATIVE_FIELD.getText().equals("-")) {
+                    String initiativeString = INITIATIVE_FIELD.getText().replaceAll("[^\\d.-]", "");
+                    if (initiativeString.contains(".")) {
+                        initiativeString = initiativeString
+                                .replaceFirst("\\.", "A")
+                                .replace(".", "")
+                                .replace("A", ".");
+                    }
+                    if (initiativeString.contains("-")) {
+                        initiativeString = initiativeString.replaceAll("-", "");
+                        initiativeString = "-" + initiativeString;
+                    }
+                    double initiative = Double.parseDouble(initiativeString);
+                    if (initiative != CHARACTER_DETAIL.getInitiative()) {
+                        CHARACTER_DETAIL.setInitiative(initiative);
+                        GUI.sortCharacterPanels();
+                    }
                 }
             }
         });
