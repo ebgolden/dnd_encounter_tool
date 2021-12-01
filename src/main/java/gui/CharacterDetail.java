@@ -14,7 +14,7 @@ public class CharacterDetail {
         this.initiativeBonus = initiativeBonus;
         this.armorClass = armorClass;
         this.hitPoints = hitPoints;
-        FILE = file;
+        FILE = (((file != null) && file.exists()) ? file : null);
     }
 
     public String getCharacterName() {
@@ -67,6 +67,6 @@ public class CharacterDetail {
                 + initiativeBonus + ","
                 + armorClass + ","
                 + hitPoints + ","
-                + FILE.getAbsolutePath();
+                + ((FILE != null) ? FILE.getAbsolutePath() : "-");
     }
 }

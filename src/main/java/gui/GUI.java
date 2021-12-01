@@ -20,12 +20,15 @@ import java.util.stream.Stream;
 public class GUI {
     private static List<CharacterPanel> characterPanels;
     private static JFrame window;
+    private static JButton addManuallyButton;
     private static double currentTurnInitiative;
+    private static boolean addingManually;
 
     public static void main(String[] args) {
         characterPanels = new LinkedList<>();
         window = new JFrame();
         currentTurnInitiative = Integer.MAX_VALUE;
+        addingManually = false;
         window.setLayout(new VerticalFlowLayout());
         window.setVisible(true);
         JPanel headerPanel = new JPanel();
@@ -35,13 +38,19 @@ public class GUI {
         headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
         headerPanel.add(new JLabel("Initiative"));
         headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
+        headerPanel.add(new JLabel("Initiative Bonus"));
+        headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
         headerPanel.add(new JLabel("Armor Class"));
         headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
         headerPanel.add(new JLabel("Hit Points"));
-        JButton addCharactersButton = new JButton("Import more");
-        addCharactersButton.setVisible(true);
-        window.add(addCharactersButton);
-        addCharactersButton.addActionListener(e -> fileChooser());
+        JButton importMoreCharactersButton = new JButton("Import more");
+        importMoreCharactersButton.setVisible(true);
+        window.add(importMoreCharactersButton);
+        importMoreCharactersButton.addActionListener(e -> fileChooser());
+        addManuallyButton = new JButton("Add manually");
+        addManuallyButton.setVisible(true);
+        window.add(addManuallyButton);
+        addManuallyButton.addActionListener(e -> addCharacterManually());
         JButton nextTurnButton = new JButton("Next turn");
         nextTurnButton.setVisible(true);
         window.add(nextTurnButton);
@@ -212,5 +221,29 @@ public class GUI {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void addCharacterManually() {
+        if (!addingManually) {
+            addingManually = true;
+            addManuallyButton.setEnabled(false);
+            CharacterPanel characterPanel = new CharacterPanel();
+            characterPanels.add(characterPanel);
+            characterPanel.setVisible(true);
+            window.add(characterPanel, 0);
+            window.pack();
+        }
+    }
+
+    public static void removeCharacterPanelFromInitiative(CharacterPanel characterPanel) {
+        window.remove(characterPanel);
+        characterPanels.remove(characterPanel);
+        characterPanel.setVisible(false);
+        sortCharacterPanels();
+    }
+
+    public static void finishAddingManually() {
+        addingManually = false;
+        addManuallyButton.setEnabled(true);
     }
 }
