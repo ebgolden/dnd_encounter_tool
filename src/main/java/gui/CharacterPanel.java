@@ -7,7 +7,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.IOException;
 import java.text.NumberFormat;
 
 public class CharacterPanel extends JPanel {
@@ -294,9 +293,9 @@ public class CharacterPanel extends JPanel {
         VIEW_FILE_OR_ADD_BUTTON.addActionListener(e -> {
             if (!addingManually && (CHARACTER_DETAIL.getFile() != null)) {
                 try {
-                    Desktop.getDesktop().open(CHARACTER_DETAIL.getFile());
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                    GUI.viewCharacterSheet(CHARACTER_DETAIL.getFile());
+                } catch (Exception ex) {
+                    ex.getStackTrace();
                 }
             }
             else {

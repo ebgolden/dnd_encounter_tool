@@ -6,10 +6,15 @@ group 'org.example'
 version '1.0-SNAPSHOT'
 
 repositories {
+    maven {
+        url "https://maven.geotoolkit.org"
+    }
     mavenCentral()
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile 'org.apache.pdfbox:pdfbox:2.0.24'
+    compile 'org.icepdf.os:icepdf-core:6.2.2'
+    compile 'org.icepdf.os:icepdf-viewer:6.2.2'
 }

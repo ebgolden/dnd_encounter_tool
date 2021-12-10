@@ -1,13 +1,19 @@
 package gui;
 
+import org.icepdf.ri.common.ComponentKeyBinding;
+import org.icepdf.ri.common.SwingController;
+import org.icepdf.ri.common.SwingViewBuilder;
 import pdf_to_text_reader.PDFToText;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,20 +26,38 @@ import java.util.stream.Stream;
 public class GUI {
     private static List<CharacterPanel> characterPanels;
     private static JFrame window;
+    private static JPanel initiativePanel, pdfPanel;
+    private static SwingController controller;
     private static JButton addManuallyButton;
     private static double currentTurnInitiative;
-    private static boolean addingManually;
+    private static boolean addingManually, removingManually;
 
     public static void main(String[] args) {
         characterPanels = new LinkedList<>();
         window = new JFrame();
+        window.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                super.componentResized(e);
+                window.getContentPane().removeAll();
+                window.getContentPane().add(initiativePanel, BorderLayout.WEST);
+                window.getContentPane().add(pdfPanel, BorderLayout.CENTER);
+            }
+        });
         currentTurnInitiative = Integer.MAX_VALUE;
         addingManually = false;
-        window.setLayout(new VerticalFlowLayout());
+        removingManually = false;
+        window.setLayout(new BorderLayout());
+        initiativePanel = new JPanel();
+        initiativePanel.setLayout(new VerticalFlowLayout());
+        pdfPanel = new JPanel();
+        pdfPanel.setLayout(new BorderLayout());
         window.setVisible(true);
+        window.add(initiativePanel, BorderLayout.WEST);
+        window.add(pdfPanel, BorderLayout.EAST);
         JPanel headerPanel = new JPanel();
         headerPanel.setVisible(true);
-        window.add(headerPanel);
+        initiativePanel.add(headerPanel);
         headerPanel.add(new JLabel("Character Name"));
         headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
         headerPanel.add(new JLabel("Initiative"));
@@ -45,15 +69,28 @@ public class GUI {
         headerPanel.add(new JLabel("Hit Points"));
         JButton importMoreCharactersButton = new JButton("Import more");
         importMoreCharactersButton.setVisible(true);
-        window.add(importMoreCharactersButton);
+        initiativePanel.add(importMoreCharactersButton);
         importMoreCharactersButton.addActionListener(e -> fileChooser());
         addManuallyButton = new JButton("Add manually");
         addManuallyButton.setVisible(true);
-        window.add(addManuallyButton);
+        initiativePanel.add(addManuallyButton);
         addManuallyButton.addActionListener(e -> addCharacterManually());
         JButton nextTurnButton = new JButton("Next turn");
         nextTurnButton.setVisible(true);
-        window.add(nextTurnButton);
+        initiativePanel.add(nextTurnButton);
+        controller = new SwingController();
+        SwingViewBuilder factory = new SwingViewBuilder(controller);
+        JPanel viewerComponentPanel = factory.buildViewerPanel();
+        viewerComponentPanel.setPreferredSize(new Dimension(400, 243));
+        viewerComponentPanel.setMaximumSize(new Dimension(400, 243));
+        ComponentKeyBinding.install(controller, viewerComponentPanel);
+        controller.getDocumentViewController().setAnnotationCallback(
+                new org.icepdf.ri.common.MyAnnotationCallback(
+                        controller.getDocumentViewController()));
+        pdfPanel.add(viewerComponentPanel, BorderLayout.CENTER);
+        pdfPanel.invalidate();
+        System.setProperty("org.icepdf.core.nfont.truetype.hinting", "true");
+        System.setProperty("org.icepdf.core.awtFontLoading", "true");
         nextTurnButton.addActionListener(e -> nextTurn());
         fileChooser();
     }
@@ -62,7 +99,7 @@ public class GUI {
         JFileChooser fc = new JFileChooser();
         fc.setFileFilter(new FileNameExtensionFilter("PDF (*.pdf), CSV (*.csv)", "pdf", "csv"));
         fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        int returnVal = fc.showOpenDialog(window);
+        int returnVal = fc.showOpenDialog(initiativePanel);
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             populate(fc.getSelectedFile());
         }
@@ -153,9 +190,9 @@ public class GUI {
         Collections.reverse(characterPanels);
         characterPanels.forEach(p -> {
             if (p.getParent() != null)
-                window.remove(p);
+                initiativePanel.remove(p);
             p.setVisible(true);
-            window.add(p);
+            initiativePanel.add(p);
         });
         if (currentTurnInitiative == Integer.MAX_VALUE)
             currentTurnInitiative = characterPanels.get(0).getCharacterDetail().getInitiative();
@@ -230,20 +267,43 @@ public class GUI {
             CharacterPanel characterPanel = new CharacterPanel();
             characterPanels.add(characterPanel);
             characterPanel.setVisible(true);
-            window.add(characterPanel, 0);
+            initiativePanel.add(characterPanel, 0);
             window.pack();
         }
     }
 
     public static void removeCharacterPanelFromInitiative(CharacterPanel characterPanel) {
-        window.remove(characterPanel);
-        characterPanels.remove(characterPanel);
-        characterPanel.setVisible(false);
-        sortCharacterPanels();
+        if (!removingManually) {
+            removingManually = true;
+            JButton verifyDelete = new JButton("Remove?");
+            JButton cancelRemove = new JButton("Cancel");
+            verifyDelete.addActionListener(e -> {
+                removingManually = false;
+                initiativePanel.remove(characterPanel);
+                characterPanels.remove(characterPanel);
+                characterPanel.setVisible(false);
+                sortCharacterPanels();
+                initiativePanel.remove(verifyDelete);
+                initiativePanel.remove(cancelRemove);
+            });
+            cancelRemove.addActionListener(e -> {
+                removingManually = false;
+                initiativePanel.remove(verifyDelete);
+                initiativePanel.remove(cancelRemove);
+                window.pack();
+            });
+            initiativePanel.add(verifyDelete);
+            initiativePanel.add(cancelRemove);
+            window.pack();
+        }
     }
 
     public static void finishAddingManually() {
         addingManually = false;
         addManuallyButton.setEnabled(true);
+    }
+
+    public static void viewCharacterSheet(File file) throws MalformedURLException {
+        controller.openDocument(file.toURI().toURL());
     }
 }
