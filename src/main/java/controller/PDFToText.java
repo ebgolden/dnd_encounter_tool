@@ -1,4 +1,4 @@
-package pdf_to_text_reader;
+package controller;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;

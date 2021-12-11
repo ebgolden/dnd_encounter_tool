@@ -17,4 +17,8 @@ dependencies {
     compile 'org.apache.pdfbox:pdfbox:2.0.24'
     compile 'org.icepdf.os:icepdf-core:6.2.2'
     compile 'org.icepdf.os:icepdf-viewer:6.2.2'
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+    testCompileOnly 'org.projectlombok:lombok:1.18.20'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
 }

@@ -1,9 +1,11 @@
-package gui;
+package view;
 
+import model.CharacterDetail;
 import org.icepdf.ri.common.ComponentKeyBinding;
 import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
-import pdf_to_text_reader.PDFToText;
+import controller.PDFToText;
+import viewmodel.CharacterDetailViewModel;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -115,8 +117,16 @@ public class GUI {
                             currentTurnInitiative = Double.parseDouble(s);
                         else {
                             String[] characterDetailArray = s.split(",");
-                            CharacterDetail characterDetail = new CharacterDetail(characterDetailArray[0], Double.parseDouble(characterDetailArray[1]), Integer.parseInt(characterDetailArray[2]), Integer.parseInt(characterDetailArray[3]), Integer.parseInt(characterDetailArray[4]), new File(characterDetailArray[5]));
-                            characterPanels.add(new CharacterPanel(characterDetail));
+                            CharacterDetailViewModel characterDetailViewModel = new CharacterDetailViewModel(CharacterDetail
+                                    .builder()
+                                    .characterName(characterDetailArray[0])
+                                    .initiative(Double.parseDouble(characterDetailArray[1]))
+                                    .initiativeBonus(Integer.parseInt(characterDetailArray[2]))
+                                    .armorClass(Integer.parseInt(characterDetailArray[3]))
+                                    .hitPoints(Integer.parseInt(characterDetailArray[4]))
+                                    .file(new File(characterDetailArray[5]))
+                                    .build());
+                            characterPanels.add(new CharacterPanel(characterDetailViewModel));
                         }
                     });
                 }
@@ -134,9 +144,15 @@ public class GUI {
                     String characterSheetText = pdfToText.getTextFromPDF(file.getAbsolutePath());
                     int initiative, initiativeBonus, hitPoints, armorClass;
                     try {
-                        initiativeBonus = Integer.parseInt(characterSheetText.split("INITIATIVE")[1].split("SPEED")[0].replaceAll("[+ \r\n]", ""));
-                        armorClass = Integer.parseInt(characterSheetText.split(Pattern.quote("(AC)"))[1].split("Armor Worn")[0].replaceAll("[ \r\n]", ""));
-                        hitPoints = Integer.parseInt(characterSheetText.split("HIT POINTS")[1].split("HIT DICE")[0].replaceAll("[ \r\n]", ""));
+                        initiativeBonus = Integer.parseInt(characterSheetText.split("INITIATIVE")[1]
+                                .split("SPEED")[0]
+                                .replaceAll("[+ \r\n]", ""));
+                        armorClass = Integer.parseInt(characterSheetText.split(Pattern.quote("(AC)"))[1]
+                                .split("Armor Worn")[0]
+                                .replaceAll("[ \r\n]", ""));
+                        hitPoints = Integer.parseInt(characterSheetText.split("HIT POINTS")[1]
+                                .split("HIT DICE")[0]
+                                .replaceAll("[ \r\n]", ""));
                     } catch (NumberFormatException e) {
                         List<String> details = Arrays.asList(characterSheetText.split("\r\n"));
                         int armorHeaderIndex = details.indexOf("=== ARMOR === ");
@@ -146,14 +162,24 @@ public class GUI {
                         hitPoints = Integer.parseInt(details.get(armorHeaderIndex - 2).split(" ")[0]);
                     }
                     initiative = rollInitiative(initiativeBonus);
-                    CharacterDetail characterDetail = new CharacterDetail(characterName, initiative, initiativeBonus, armorClass, hitPoints, file);
+                    CharacterDetailViewModel characterDetailViewModel = new CharacterDetailViewModel(CharacterDetail
+                            .builder()
+                            .characterName(characterName)
+                            .initiative(initiative)
+                            .initiativeBonus(initiativeBonus)
+                            .armorClass(armorClass)
+                            .hitPoints(hitPoints)
+                            .file(file)
+                            .build());
                     int finalInitiative = initiative;
                     characterPanels.forEach(p -> {
-                        CharacterDetail c = p.getCharacterDetail();
-                        if (c.getInitiative() == finalInitiative)
-                            characterDetail.setInitiative(finalInitiative + ((rollOffInitiative(characterDetail.getInitiativeBonus(), c.getInitiativeBonus())) ? .5 : -.5));
+                        CharacterDetailViewModel c = p.getCharacterDetailViewModel();
+                        if (c.getCharacterDetail().getInitiative() == finalInitiative)
+                            characterDetailViewModel.getCharacterDetail()
+                                    .setInitiative(finalInitiative + ((rollOffInitiative(characterDetailViewModel.getCharacterDetail()
+                                            .getInitiativeBonus(), c.getCharacterDetail().getInitiativeBonus())) ? .5 : -.5));
                     });
-                    characterPanels.add(new CharacterPanel(characterDetail));
+                    characterPanels.add(new CharacterPanel(characterDetailViewModel));
                 }
             }
             sortCharacterPanels();
@@ -186,7 +212,9 @@ public class GUI {
     }
 
     public static void sortCharacterPanels() {
-        characterPanels.sort(Comparator.comparing(p -> p.getCharacterDetail().getInitiative()));
+        characterPanels.sort(Comparator.comparing(p -> p.getCharacterDetailViewModel()
+                .getCharacterDetail()
+                .getInitiative()));
         Collections.reverse(characterPanels);
         characterPanels.forEach(p -> {
             if (p.getParent() != null)
@@ -195,7 +223,10 @@ public class GUI {
             initiativePanel.add(p);
         });
         if (currentTurnInitiative == Integer.MAX_VALUE)
-            currentTurnInitiative = characterPanels.get(0).getCharacterDetail().getInitiative();
+            currentTurnInitiative = characterPanels.get(0)
+                    .getCharacterDetailViewModel()
+                    .getCharacterDetail()
+                    .getInitiative();
         selectCharacterPanelForTurn();
         window.pack();
         saveToFile();
@@ -204,7 +235,9 @@ public class GUI {
     private static void selectCharacterPanelForTurn() {
         if (!characterPanels.isEmpty()) {
             final List<Double> initiatives = characterPanels.stream()
-                    .map(c -> c.getCharacterDetail().getInitiative())
+                    .map(c -> c.getCharacterDetailViewModel()
+                            .getCharacterDetail()
+                            .getInitiative())
                     .collect(Collectors.toList());
             double closestInitiative = initiatives.get(0);
             for (double initiative : initiatives)
@@ -212,7 +245,9 @@ public class GUI {
                     closestInitiative = initiative;
             currentTurnInitiative = closestInitiative;
             characterPanels.forEach(p -> {
-                if (currentTurnInitiative == p.getCharacterDetail().getInitiative())
+                if (currentTurnInitiative == p.getCharacterDetailViewModel()
+                        .getCharacterDetail()
+                        .getInitiative())
                 {
                     p.setBackground(Color.BLUE);
                     p.setForeground(Color.WHITE);
@@ -228,14 +263,23 @@ public class GUI {
     private static void nextTurn() {
         if (!characterPanels.isEmpty()) {
             if (currentTurnInitiative == Integer.MAX_VALUE)
-                currentTurnInitiative = characterPanels.get(0).getCharacterDetail().getInitiative();
+                currentTurnInitiative = characterPanels.get(0)
+                        .getCharacterDetailViewModel()
+                        .getCharacterDetail()
+                        .getInitiative();
             else {
                 for (int i = 0; i < characterPanels.size(); ++i) {
-                    CharacterDetail characterDetail = characterPanels.get(i).getCharacterDetail();
-                    if (currentTurnInitiative == characterDetail.getInitiative()) {
+                    CharacterDetailViewModel characterDetailViewModel = characterPanels.get(i).getCharacterDetailViewModel();
+                    if (currentTurnInitiative == characterDetailViewModel.getCharacterDetail().getInitiative()) {
                         if (i == (characterPanels.size() - 1))
-                            currentTurnInitiative = characterPanels.get(0).getCharacterDetail().getInitiative();
-                        else currentTurnInitiative = characterPanels.get(i + 1).getCharacterDetail().getInitiative();
+                            currentTurnInitiative = characterPanels.get(0)
+                                    .getCharacterDetailViewModel()
+                                    .getCharacterDetail()
+                                    .getInitiative();
+                        else currentTurnInitiative = characterPanels.get(i + 1)
+                                .getCharacterDetailViewModel()
+                                .getCharacterDetail()
+                                .getInitiative();
                         break;
                     }
                 }
@@ -251,7 +295,7 @@ public class GUI {
             try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
                 pw.println(currentTurnInitiative);
                 characterPanels.stream()
-                        .map(p -> p.getCharacterDetail().toString())
+                        .map(p -> p.getCharacterDetailViewModel().toString())
                         .forEach(pw::println);
             }
         }

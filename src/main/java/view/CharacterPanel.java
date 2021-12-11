@@ -1,4 +1,7 @@
-package gui;
+package view;
+
+import model.CharacterDetail;
+import viewmodel.CharacterDetailViewModel;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
@@ -10,19 +13,19 @@ import java.awt.event.KeyListener;
 import java.text.NumberFormat;
 
 public class CharacterPanel extends JPanel {
-    private final CharacterDetail CHARACTER_DETAIL;
+    private final CharacterDetailViewModel CHARACTER_DETAIL_VIEW_MODEL;
     private final JTextField CHARACTER_NAME_FIELD, INITIATIVE_FIELD, INITIATIVE_BONUS_FIELD, ARMOR_CLASS_FIELD, HIT_POINTS_FIELD;
     private boolean addingManually;
 
-    CharacterPanel() {
-        this(new CharacterDetail(null, 0, 0, 0, 0, null));
+    public CharacterPanel() {
+        this(new CharacterDetailViewModel(CharacterDetail.builder().build()));
     }
 
-    CharacterPanel(CharacterDetail characterDetail) {
+    public CharacterPanel(CharacterDetailViewModel characterDetailViewModel) {
         super();
-        addingManually = characterDetail.getCharacterName() == null;
-        CHARACTER_DETAIL = characterDetail;
-        CHARACTER_NAME_FIELD = new JFormattedTextField((characterDetail.getCharacterName() != null) ? characterDetail.getCharacterName() : "");
+        addingManually = characterDetailViewModel.getCharacterDetail().getCharacterName() == null;
+        CHARACTER_DETAIL_VIEW_MODEL = characterDetailViewModel;
+        CHARACTER_NAME_FIELD = new JFormattedTextField((characterDetailViewModel.getCharacterDetail().getCharacterName() != null) ? characterDetailViewModel.getCharacterDetail().getCharacterName() : "");
         CHARACTER_NAME_FIELD.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {}
@@ -35,8 +38,8 @@ public class CharacterPanel extends JPanel {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     if (!CHARACTER_NAME_FIELD.getText().equals("")) {
                         String characterName = CHARACTER_NAME_FIELD.getText();
-                        if (!characterName.equals(CHARACTER_DETAIL.getCharacterName())) {
-                            CHARACTER_DETAIL.setCharacterName(characterName);
+                        if (!characterName.equals(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getCharacterName())) {
+                            CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setCharacterName(characterName);
                             if (!addingManually)
                                 GUI.sortCharacterPanels();
                         }
@@ -52,8 +55,8 @@ public class CharacterPanel extends JPanel {
             public void focusLost(FocusEvent e) {
                 if (!CHARACTER_NAME_FIELD.getText().equals("")) {
                     String characterName = CHARACTER_NAME_FIELD.getText();
-                    if (!characterName.equals(CHARACTER_DETAIL.getCharacterName())) {
-                        CHARACTER_DETAIL.setCharacterName(characterName);
+                    if (!characterName.equals(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getCharacterName())) {
+                        CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setCharacterName(characterName);
                         if (!addingManually)
                             GUI.sortCharacterPanels();
                     }
@@ -68,7 +71,7 @@ public class CharacterPanel extends JPanel {
         formatter.setAllowsInvalid(true);
         formatter.setCommitsOnValidEdit(false);
         INITIATIVE_FIELD = new JFormattedTextField(formatter);
-        INITIATIVE_FIELD.setText(String.valueOf(CHARACTER_DETAIL.getInitiative()));
+        INITIATIVE_FIELD.setText(String.valueOf(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getInitiative()));
         INITIATIVE_FIELD.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {}
@@ -92,8 +95,8 @@ public class CharacterPanel extends JPanel {
                             initiativeString = "-" + initiativeString;
                         }
                         double initiative = Double.parseDouble(initiativeString);
-                        if (initiative != CHARACTER_DETAIL.getInitiative()) {
-                            CHARACTER_DETAIL.setInitiative(initiative);
+                        if (initiative != CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getInitiative()) {
+                            CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setInitiative(initiative);
                             if (!addingManually)
                                 GUI.sortCharacterPanels();
                         }
@@ -120,8 +123,8 @@ public class CharacterPanel extends JPanel {
                         initiativeString = "-" + initiativeString;
                     }
                     double initiative = Double.parseDouble(initiativeString);
-                    if (initiative != CHARACTER_DETAIL.getInitiative()) {
-                        CHARACTER_DETAIL.setInitiative(initiative);
+                    if (initiative != CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getInitiative()) {
+                        CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setInitiative(initiative);
                         if (!addingManually)
                             GUI.sortCharacterPanels();
                     }
@@ -136,7 +139,7 @@ public class CharacterPanel extends JPanel {
         formatter.setAllowsInvalid(true);
         formatter.setCommitsOnValidEdit(false);
         INITIATIVE_BONUS_FIELD = new JFormattedTextField(formatter);
-        INITIATIVE_BONUS_FIELD.setText(String.valueOf(CHARACTER_DETAIL.getInitiativeBonus()));
+        INITIATIVE_BONUS_FIELD.setText(String.valueOf(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getInitiativeBonus()));
         INITIATIVE_BONUS_FIELD.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {}
@@ -150,8 +153,8 @@ public class CharacterPanel extends JPanel {
                     if (!INITIATIVE_BONUS_FIELD.getText().equals("")) {
                         String initiativeBonusString = INITIATIVE_BONUS_FIELD.getText().replaceAll("[^\\d]", "");
                         int initiativeBonus = Integer.parseInt(initiativeBonusString);
-                        if (initiativeBonus != CHARACTER_DETAIL.getInitiativeBonus()) {
-                            CHARACTER_DETAIL.setInitiativeBonus(initiativeBonus);
+                        if (initiativeBonus != CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getInitiativeBonus()) {
+                            CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setInitiativeBonus(initiativeBonus);
                             if (!addingManually)
                                 GUI.sortCharacterPanels();
                         }
@@ -168,8 +171,8 @@ public class CharacterPanel extends JPanel {
                 if (!INITIATIVE_BONUS_FIELD.getText().equals("")) {
                     String initiativeBonusString = INITIATIVE_BONUS_FIELD.getText().replaceAll("[^\\d]", "");
                     int initiativeBonus = Integer.parseInt(initiativeBonusString);
-                    if (initiativeBonus != CHARACTER_DETAIL.getInitiativeBonus()) {
-                        CHARACTER_DETAIL.setInitiativeBonus(initiativeBonus);
+                    if (initiativeBonus != CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getInitiativeBonus()) {
+                        CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setInitiativeBonus(initiativeBonus);
                         if (!addingManually)
                             GUI.sortCharacterPanels();
                     }
@@ -184,7 +187,7 @@ public class CharacterPanel extends JPanel {
         formatter.setAllowsInvalid(true);
         formatter.setCommitsOnValidEdit(false);
         ARMOR_CLASS_FIELD = new JFormattedTextField(formatter);
-        ARMOR_CLASS_FIELD.setText(String.valueOf(CHARACTER_DETAIL.getArmorClass()));
+        ARMOR_CLASS_FIELD.setText(String.valueOf(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getArmorClass()));
         ARMOR_CLASS_FIELD.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {}
@@ -198,8 +201,8 @@ public class CharacterPanel extends JPanel {
                     if (!ARMOR_CLASS_FIELD.getText().equals("")) {
                         String armorClassString = ARMOR_CLASS_FIELD.getText().replaceAll("[^\\d]", "");
                         int armorClass = Integer.parseInt(armorClassString);
-                        if (armorClass != CHARACTER_DETAIL.getArmorClass()) {
-                            CHARACTER_DETAIL.setArmorClass(armorClass);
+                        if (armorClass != CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getArmorClass()) {
+                            CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setArmorClass(armorClass);
                             if (!addingManually)
                                 GUI.sortCharacterPanels();
                         }
@@ -216,8 +219,8 @@ public class CharacterPanel extends JPanel {
                 if (!ARMOR_CLASS_FIELD.getText().equals("")) {
                     String armorClassString = ARMOR_CLASS_FIELD.getText().replaceAll("[^\\d]", "");
                     int armorClass = Integer.parseInt(armorClassString);
-                    if (armorClass != CHARACTER_DETAIL.getArmorClass()) {
-                        CHARACTER_DETAIL.setArmorClass(armorClass);
+                    if (armorClass != CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getArmorClass()) {
+                        CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setArmorClass(armorClass);
                         if (!addingManually)
                             GUI.sortCharacterPanels();
                     }
@@ -232,7 +235,7 @@ public class CharacterPanel extends JPanel {
         formatter.setAllowsInvalid(true);
         formatter.setCommitsOnValidEdit(false);
         HIT_POINTS_FIELD = new JFormattedTextField(formatter);
-        HIT_POINTS_FIELD.setText(String.valueOf(CHARACTER_DETAIL.getHitPoints()));
+        HIT_POINTS_FIELD.setText(String.valueOf(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getHitPoints()));
         HIT_POINTS_FIELD.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {}
@@ -246,8 +249,8 @@ public class CharacterPanel extends JPanel {
                     if (!HIT_POINTS_FIELD.getText().equals("")) {
                         String hitPointsString = HIT_POINTS_FIELD.getText().replaceAll("[^\\d]", "");
                         int hitPoints = Integer.parseInt(hitPointsString);
-                        if (hitPoints != CHARACTER_DETAIL.getHitPoints()) {
-                            CHARACTER_DETAIL.setHitPoints(hitPoints);
+                        if (hitPoints != CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getHitPoints()) {
+                            CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setHitPoints(hitPoints);
                             if (!addingManually)
                                 GUI.sortCharacterPanels();
                         }
@@ -264,8 +267,8 @@ public class CharacterPanel extends JPanel {
                 if (!HIT_POINTS_FIELD.getText().equals("")) {
                     String hitPointsString = HIT_POINTS_FIELD.getText().replaceAll("[^\\d]", "");
                     int hitPoints = Integer.parseInt(hitPointsString);
-                    if (hitPoints != CHARACTER_DETAIL.getHitPoints()) {
-                        CHARACTER_DETAIL.setHitPoints(hitPoints);
+                    if (hitPoints != CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getHitPoints()) {
+                        CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().setHitPoints(hitPoints);
                         if (!addingManually)
                             GUI.sortCharacterPanels();
                     }
@@ -288,12 +291,12 @@ public class CharacterPanel extends JPanel {
         HIT_POINTS_FIELD.setPreferredSize(new Dimension(60, 20));
         super.add(Box.createRigidArea(new Dimension(5,0)));
         JButton VIEW_FILE_OR_ADD_BUTTON = new JButton((!addingManually ? "Open file" : "Add"));
-        VIEW_FILE_OR_ADD_BUTTON.setEnabled(addingManually || (CHARACTER_DETAIL.getFile() != null));
+        VIEW_FILE_OR_ADD_BUTTON.setEnabled(addingManually || (CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getFile() != null));
         super.add(VIEW_FILE_OR_ADD_BUTTON);
         VIEW_FILE_OR_ADD_BUTTON.addActionListener(e -> {
-            if (!addingManually && (CHARACTER_DETAIL.getFile() != null)) {
+            if (!addingManually && (CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getFile() != null)) {
                 try {
-                    GUI.viewCharacterSheet(CHARACTER_DETAIL.getFile());
+                    GUI.viewCharacterSheet(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getFile());
                 } catch (Exception ex) {
                     ex.getStackTrace();
                 }
@@ -314,7 +317,7 @@ public class CharacterPanel extends JPanel {
         });
     }
 
-    public CharacterDetail getCharacterDetail() {
-        return CHARACTER_DETAIL;
+    public CharacterDetailViewModel getCharacterDetailViewModel() {
+        return CHARACTER_DETAIL_VIEW_MODEL;
     }
 }
