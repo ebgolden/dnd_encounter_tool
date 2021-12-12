@@ -1,6 +1,7 @@
 package view;
 
 import model.CharacterDetail;
+import model.MusicDetail;
 import org.icepdf.ri.common.ComponentKeyBinding;
 import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
@@ -27,8 +28,9 @@ import java.util.stream.Stream;
 
 public class GUI {
     private static List<CharacterPanel> characterPanels;
+    private static List<MusicPanel> musicPanels;
     private static JFrame window;
-    private static JPanel initiativePanel, pdfPanel;
+    private static JPanel interactivePanel, initiativePanel, pdfPanel, soundBoardPanel;
     private static SwingController controller;
     private static JButton addManuallyButton;
     private static double currentTurnInitiative;
@@ -36,13 +38,14 @@ public class GUI {
 
     public static void main(String[] args) {
         characterPanels = new LinkedList<>();
+        musicPanels = new LinkedList<>();
         window = new JFrame();
         window.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 super.componentResized(e);
                 window.getContentPane().removeAll();
-                window.getContentPane().add(initiativePanel, BorderLayout.WEST);
+                window.getContentPane().add(interactivePanel, BorderLayout.WEST);
                 window.getContentPane().add(pdfPanel, BorderLayout.CENTER);
             }
         });
@@ -50,13 +53,36 @@ public class GUI {
         addingManually = false;
         removingManually = false;
         window.setLayout(new BorderLayout());
+        interactivePanel = new JPanel();
+        interactivePanel.setLayout(new VerticalFlowLayout());
         initiativePanel = new JPanel();
         initiativePanel.setLayout(new VerticalFlowLayout());
+        soundBoardPanel = new JPanel();
+        soundBoardPanel.setLayout(new GridLayout(10, 2));
         pdfPanel = new JPanel();
         pdfPanel.setLayout(new BorderLayout());
         window.setVisible(true);
-        window.add(initiativePanel, BorderLayout.WEST);
+        interactivePanel.add(initiativePanel);
+        interactivePanel.add(soundBoardPanel);
+        window.add(interactivePanel, BorderLayout.WEST);
         window.add(pdfPanel, BorderLayout.EAST);
+        JPanel initiativeOperationsPanel = new JPanel(new FlowLayout());
+        JButton importMoreCharactersButton = new JButton("Import more");
+        importMoreCharactersButton.setVisible(true);
+        initiativeOperationsPanel.add(importMoreCharactersButton);
+        importMoreCharactersButton.addActionListener(e -> fileChooser());
+        addManuallyButton = new JButton("Add manually");
+        addManuallyButton.setVisible(true);
+        initiativeOperationsPanel.add(addManuallyButton);
+        addManuallyButton.addActionListener(e -> addCharacterManually());
+        JButton addMusicButton = new JButton("Add music");
+        addMusicButton.setVisible(true);
+        initiativeOperationsPanel.add(addMusicButton);
+        addMusicButton.addActionListener(e -> addMusic());
+        JButton nextTurnButton = new JButton("Next turn");
+        nextTurnButton.setVisible(true);
+        initiativeOperationsPanel.add(nextTurnButton);
+        initiativePanel.add(initiativeOperationsPanel);
         JPanel headerPanel = new JPanel();
         headerPanel.setVisible(true);
         initiativePanel.add(headerPanel);
@@ -69,17 +95,6 @@ public class GUI {
         headerPanel.add(new JLabel("Armor Class"));
         headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
         headerPanel.add(new JLabel("Hit Points"));
-        JButton importMoreCharactersButton = new JButton("Import more");
-        importMoreCharactersButton.setVisible(true);
-        initiativePanel.add(importMoreCharactersButton);
-        importMoreCharactersButton.addActionListener(e -> fileChooser());
-        addManuallyButton = new JButton("Add manually");
-        addManuallyButton.setVisible(true);
-        initiativePanel.add(addManuallyButton);
-        addManuallyButton.addActionListener(e -> addCharacterManually());
-        JButton nextTurnButton = new JButton("Next turn");
-        nextTurnButton.setVisible(true);
-        initiativePanel.add(nextTurnButton);
         controller = new SwingController();
         SwingViewBuilder factory = new SwingViewBuilder(controller);
         JPanel viewerComponentPanel = factory.buildViewerPanel();
@@ -112,9 +127,27 @@ public class GUI {
         try {
             if (directory.getAbsolutePath().contains(".csv")) {
                 try (Stream<String> stream = Files.lines(Paths.get(directory.getAbsolutePath()))) {
+                    Map<String, List<MusicDetail>> playlistToMusicMap = new HashMap<>();
                     stream.forEach(s -> {
                         if (!s.contains(","))
                             currentTurnInitiative = Double.parseDouble(s);
+                        else if (s.contains(".wav")) {
+                            String[] musicDetailArray = s.split(",");
+                            MusicDetail musicDetail = MusicDetail.builder()
+                                    .playlistName(musicDetailArray[0])
+                                    .musicName(musicDetailArray[1])
+                                    .clipTimePosition(Long.parseLong(musicDetailArray[2]))
+                                    .playing(Boolean.parseBoolean(musicDetailArray[3]))
+                                    .file(new File(musicDetailArray[4]))
+                                    .build();
+                            if (playlistToMusicMap.containsKey(musicDetail.getPlaylistName()))
+                                playlistToMusicMap.get(musicDetail.getPlaylistName()).add(musicDetail);
+                            else {
+                                List<MusicDetail> musicDetailList = new LinkedList<>();
+                                musicDetailList.add(musicDetail);
+                                playlistToMusicMap.put(musicDetail.getPlaylistName(), musicDetailList);
+                            }
+                        }
                         else {
                             String[] characterDetailArray = s.split(",");
                             CharacterDetailViewModel characterDetailViewModel = new CharacterDetailViewModel(CharacterDetail
@@ -129,6 +162,7 @@ public class GUI {
                             characterPanels.add(new CharacterPanel(characterDetailViewModel));
                         }
                     });
+                    playlistToMusicMap.forEach((k, p) -> musicPanels.add(new MusicPanel(p)));
                 }
             }
             else {
@@ -183,6 +217,7 @@ public class GUI {
                 }
             }
             sortCharacterPanels();
+            refreshMusicPanels();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -297,6 +332,11 @@ public class GUI {
                 characterPanels.stream()
                         .map(p -> p.getCharacterDetailViewModel().toString())
                         .forEach(pw::println);
+                musicPanels.stream()
+                        .map(MusicPanel::getMusicDetailList)
+                        .forEach(p -> p.stream()
+                                .map(MusicDetail::toString)
+                                .forEach(pw::println));
             }
         }
         catch (Exception e) {
@@ -314,6 +354,55 @@ public class GUI {
             initiativePanel.add(characterPanel, 0);
             window.pack();
         }
+    }
+
+    private static void addMusic() {
+        JFileChooser fc = new JFileChooser();
+        fc.setFileFilter(new FileNameExtensionFilter("WAV (*.wav)", "wav"));
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int returnVal = fc.showOpenDialog(soundBoardPanel);
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            populateMusic(fc.getSelectedFile());
+        }
+    }
+
+    private static void populateMusic(File directory) {
+        List<File> files = new ArrayList<>();
+        List<MusicDetail> musicDetailList = new LinkedList<>();
+        try {
+            Files.walk(Paths.get(directory.getAbsolutePath()))
+                    .filter(Files::isRegularFile)
+                    .filter(f -> f.toFile().getAbsolutePath().contains(".wav"))
+                    .map(Path::toFile)
+                    .forEach(files::add);
+            String playlistName = directory.getName();
+            for (File file : files) {
+                String musicName = file.getName().split("\\.")[0];
+                musicDetailList.add(MusicDetail.builder()
+                        .playlistName(playlistName)
+                        .musicName(musicName)
+                        .file(file)
+                        .build());
+            }
+            musicPanels.add(new MusicPanel(musicDetailList));
+            refreshMusicPanels();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void refreshMusicPanels() {
+        musicPanels.sort(Comparator.comparing(p -> p.getMusicDetailList()
+                .get(0)
+                .getPlaylistName()));
+        musicPanels.forEach(p -> {
+            if (p.getParent() != null)
+                soundBoardPanel.remove(p);
+            p.setVisible(true);
+            soundBoardPanel.add(p);
+        });
+        window.pack();
+        saveToFile();
     }
 
     public static void removeCharacterPanelFromInitiative(CharacterPanel characterPanel) {
@@ -349,5 +438,9 @@ public class GUI {
 
     public static void viewCharacterSheet(File file) throws MalformedURLException {
         controller.openDocument(file.toURI().toURL());
+    }
+
+    public static void stopAllMusic() {
+        musicPanels.forEach(MusicPanel::pause);
     }
 }
