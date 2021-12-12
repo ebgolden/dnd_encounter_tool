@@ -30,11 +30,12 @@ public class GUI {
     private static List<CharacterPanel> characterPanels;
     private static List<MusicPanel> musicPanels;
     private static JFrame window;
-    private static JPanel interactivePanel, initiativePanel, pdfPanel, soundBoardPanel;
+    private static JPanel interactivePanel, trackerPanel, initiativePanel, pdfPanel, soundBoardPanel;
     private static SwingController controller;
     private static JButton addManuallyButton;
     private static double currentTurnInitiative;
     private static boolean addingManually, removingManually;
+    private static File encounterFile;
 
     public static void main(String[] args) {
         characterPanels = new LinkedList<>();
@@ -49,21 +50,24 @@ public class GUI {
                 window.getContentPane().add(pdfPanel, BorderLayout.CENTER);
             }
         });
+        encounterFile = new File("encounter.csv");
         currentTurnInitiative = Integer.MAX_VALUE;
         addingManually = false;
         removingManually = false;
         window.setLayout(new BorderLayout());
-        interactivePanel = new JPanel();
-        interactivePanel.setLayout(new VerticalFlowLayout());
-        initiativePanel = new JPanel();
-        initiativePanel.setLayout(new VerticalFlowLayout());
-        soundBoardPanel = new JPanel();
-        soundBoardPanel.setLayout(new GridLayout(10, 2));
+        interactivePanel = new JPanel(new VerticalFlowLayout());
+        initiativePanel = new JPanel(new VerticalFlowLayout());
+        trackerPanel = new JPanel(new VerticalFlowLayout());
+        JPanel soundPanel = new JPanel(new VerticalFlowLayout());
+        soundBoardPanel = new JPanel(new GridLayout(10, 2));
+        JScrollPane soundScrollPane = new JScrollPane(soundBoardPanel);
+        soundScrollPane.setPreferredSize(new Dimension(650, 320));
+        soundPanel.add(soundScrollPane);
         pdfPanel = new JPanel();
         pdfPanel.setLayout(new BorderLayout());
         window.setVisible(true);
         interactivePanel.add(initiativePanel);
-        interactivePanel.add(soundBoardPanel);
+        interactivePanel.add(soundPanel);
         window.add(interactivePanel, BorderLayout.WEST);
         window.add(pdfPanel, BorderLayout.EAST);
         JPanel initiativeOperationsPanel = new JPanel(new FlowLayout());
@@ -95,6 +99,9 @@ public class GUI {
         headerPanel.add(new JLabel("Armor Class"));
         headerPanel.add(Box.createRigidArea(new Dimension(5,0)));
         headerPanel.add(new JLabel("Hit Points"));
+        JScrollPane initiativeScrollPane = new JScrollPane(trackerPanel);
+        initiativeScrollPane.setPreferredSize(new Dimension(650, 215));
+        initiativePanel.add(initiativeScrollPane);
         controller = new SwingController();
         SwingViewBuilder factory = new SwingViewBuilder(controller);
         JPanel viewerComponentPanel = factory.buildViewerPanel();
@@ -126,6 +133,7 @@ public class GUI {
         List<File> files = new ArrayList<>();
         try {
             if (directory.getAbsolutePath().contains(".csv")) {
+                encounterFile = directory;
                 try (Stream<String> stream = Files.lines(Paths.get(directory.getAbsolutePath()))) {
                     Map<String, List<MusicDetail>> playlistToMusicMap = new HashMap<>();
                     stream.forEach(s -> {
@@ -253,9 +261,9 @@ public class GUI {
         Collections.reverse(characterPanels);
         characterPanels.forEach(p -> {
             if (p.getParent() != null)
-                initiativePanel.remove(p);
+                trackerPanel.remove(p);
             p.setVisible(true);
-            initiativePanel.add(p);
+            trackerPanel.add(p);
         });
         if (currentTurnInitiative == Integer.MAX_VALUE)
             currentTurnInitiative = characterPanels.get(0)
@@ -326,8 +334,7 @@ public class GUI {
 
     private static void saveToFile() {
         try {
-            File csvOutputFile = new File("encounter.csv");
-            try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+            try (PrintWriter pw = new PrintWriter(encounterFile)) {
                 pw.println(currentTurnInitiative);
                 characterPanels.stream()
                         .map(p -> p.getCharacterDetailViewModel().toString())
@@ -351,7 +358,7 @@ public class GUI {
             CharacterPanel characterPanel = new CharacterPanel();
             characterPanels.add(characterPanel);
             characterPanel.setVisible(true);
-            initiativePanel.add(characterPanel, 0);
+            trackerPanel.add(characterPanel, 0);
             window.pack();
         }
     }
@@ -412,21 +419,21 @@ public class GUI {
             JButton cancelRemove = new JButton("Cancel");
             verifyDelete.addActionListener(e -> {
                 removingManually = false;
-                initiativePanel.remove(characterPanel);
+                trackerPanel.remove(characterPanel);
                 characterPanels.remove(characterPanel);
                 characterPanel.setVisible(false);
                 sortCharacterPanels();
-                initiativePanel.remove(verifyDelete);
-                initiativePanel.remove(cancelRemove);
+                trackerPanel.remove(verifyDelete);
+                trackerPanel.remove(cancelRemove);
             });
             cancelRemove.addActionListener(e -> {
                 removingManually = false;
-                initiativePanel.remove(verifyDelete);
-                initiativePanel.remove(cancelRemove);
+                trackerPanel.remove(verifyDelete);
+                trackerPanel.remove(cancelRemove);
                 window.pack();
             });
-            initiativePanel.add(verifyDelete);
-            initiativePanel.add(cancelRemove);
+            trackerPanel.add(verifyDelete);
+            trackerPanel.add(cancelRemove);
             window.pack();
         }
     }

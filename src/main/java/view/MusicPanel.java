@@ -33,9 +33,7 @@ public class MusicPanel extends JPanel {
         TOGGLE_BUTTON.setPreferredSize(new Dimension(165, 26));
         TOGGLE_BUTTON.addActionListener(e -> {
             if (audioFilePlayer.isPlaying()) {
-                TOGGLE_BUTTON.setBackground(null);
-                audioFilePlayer.pause();
-                MUSIC_DETAIL_LIST.get(currentMusicIndex).setClipTimePosition(audioFilePlayer.getClipTimePosition());
+                pause();
             }
             else {
                 GUI.stopAllMusic();
@@ -76,13 +74,13 @@ public class MusicPanel extends JPanel {
         });
     }
 
-    public List<MusicDetail> getMusicDetailList() {
-        return MUSIC_DETAIL_LIST;
-    }
-
     public void pause() {
         TOGGLE_BUTTON.setBackground(null);
         audioFilePlayer.pause();
         MUSIC_DETAIL_LIST.get(currentMusicIndex).setClipTimePosition(audioFilePlayer.getClipTimePosition());
+    }
+
+    public List<MusicDetail> getMusicDetailList() {
+        return MUSIC_DETAIL_LIST;
     }
 }
