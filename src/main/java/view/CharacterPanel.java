@@ -313,7 +313,7 @@ public class CharacterPanel extends JPanel {
         super.add(REMOVE_BUTTON);
         REMOVE_BUTTON.addActionListener(e -> {
             GUI.finishAddingManually();
-            GUI.removeCharacterPanelFromInitiative(this);
+            GUI.removeCharacterFromInitiative(this);
         });
     }
 
