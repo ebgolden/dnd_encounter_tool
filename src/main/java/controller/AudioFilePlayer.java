@@ -6,22 +6,22 @@ import javax.sound.sampled.Clip;
 import java.io.File;
 
 public class AudioFilePlayer {
-    private File file;
+    private final File FILE;
     private Clip clip;
     private long clipTimePosition;
     private boolean playback;
 
     public AudioFilePlayer(File file) {
-        this.file = file;
+        FILE = file;
         clipTimePosition = 0;
         playback = false;
     }
 
     public void play() {
         try {
-            if (file.exists() && !playback) {
+            if (FILE.exists() && !playback) {
                 playback = true;
-                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(file);
+                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(FILE);
                 clip = AudioSystem.getClip();
                 clip.open(audioInputStream);
                 clip.setMicrosecondPosition(clipTimePosition);
@@ -45,10 +45,6 @@ public class AudioFilePlayer {
             clipTimePosition = clip.getMicrosecondPosition();
             clip.stop();
         }
-    }
-
-    public void setFile(File file) {
-        this.file = file;
     }
 
     public boolean isPlaying() {

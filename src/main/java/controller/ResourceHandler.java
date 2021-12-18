@@ -4,6 +4,7 @@ import model.CharacterDetail;
 import model.MusicDetail;
 import view.*;
 import viewmodel.CharacterDetailViewModel;
+import viewmodel.MusicDetailViewModel;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -70,25 +71,27 @@ public class ResourceHandler {
             if (directory.getAbsolutePath().contains(".csv")) {
                 encounterFile = directory;
                 try (Stream<String> stream = Files.lines(Paths.get(directory.getAbsolutePath()))) {
-                    Map<String, List<MusicDetail>> playlistToMusicMap = new HashMap<>();
+                    Map<String, List<MusicDetailViewModel>> playlistToMusicMap = new HashMap<>();
                     stream.forEach(s -> {
                         if (!s.contains(","))
                             currentTurnInitiative = Double.parseDouble(s);
                         else if (s.contains(".wav")) {
                             String[] musicDetailArray = s.split(",");
-                            MusicDetail musicDetail = MusicDetail.builder()
+                            MusicDetailViewModel musicDetailViewModel = new MusicDetailViewModel(MusicDetail.builder()
                                     .playlistName(musicDetailArray[0])
-                                    .musicName(musicDetailArray[1])
-                                    .clipTimePosition(Long.parseLong(musicDetailArray[2]))
-                                    .playing(Boolean.parseBoolean(musicDetailArray[3]))
-                                    .file(new File(musicDetailArray[4]))
-                                    .build();
-                            if (playlistToMusicMap.containsKey(musicDetail.getPlaylistName()))
-                                playlistToMusicMap.get(musicDetail.getPlaylistName()).add(musicDetail);
+                                    .playing(Boolean.parseBoolean(musicDetailArray[1]))
+                                    .file(new File(musicDetailArray[2]))
+                                    .build());
+                            if (playlistToMusicMap.containsKey(musicDetailViewModel.getMusicDetail()
+                                    .getPlaylistName()))
+                                playlistToMusicMap.get(musicDetailViewModel.getMusicDetail()
+                                        .getPlaylistName())
+                                        .add(musicDetailViewModel);
                             else {
-                                List<MusicDetail> musicDetailList = new LinkedList<>();
-                                musicDetailList.add(musicDetail);
-                                playlistToMusicMap.put(musicDetail.getPlaylistName(), musicDetailList);
+                                List<MusicDetailViewModel> musicDetailViewModelList = new LinkedList<>();
+                                musicDetailViewModelList.add(musicDetailViewModel);
+                                playlistToMusicMap.put(musicDetailViewModel.getMusicDetail()
+                                        .getPlaylistName(), musicDetailViewModelList);
                             }
                         }
                         else {
@@ -244,9 +247,9 @@ public class ResourceHandler {
                         .map(p -> p.getCharacterDetailViewModel().toString())
                         .forEach(pw::println);
                 MUSIC_PANELS.stream()
-                        .map(MusicPanel::getMusicDetailList)
+                        .map(MusicPanel::getMusicDetailViewModelList)
                         .forEach(p -> p.stream()
-                                .map(MusicDetail::toString)
+                                .map(MusicDetailViewModel::toString)
                                 .forEach(pw::println));
             }
         }
@@ -278,23 +281,31 @@ public class ResourceHandler {
 
     public void populateMusic(File directory) {
         List<File> files = new ArrayList<>();
-        List<MusicDetail> musicDetailList = new LinkedList<>();
+        Map<String, List<MusicDetailViewModel>> playlistToMusicMap = new HashMap<>();
         try {
             Files.walk(Paths.get(directory.getAbsolutePath()))
                     .filter(Files::isRegularFile)
                     .filter(f -> f.toFile().getAbsolutePath().contains(".wav"))
                     .map(Path::toFile)
                     .forEach(files::add);
-            String playlistName = directory.getName();
             for (File file : files) {
-                String musicName = file.getName().split("\\.")[0];
-                musicDetailList.add(MusicDetail.builder()
-                        .playlistName(playlistName)
-                        .musicName(musicName)
+                MusicDetailViewModel musicDetailViewModel = new MusicDetailViewModel(MusicDetail.builder()
+                        .playlistName(file.getParentFile().getName())
                         .file(file)
                         .build());
+                if (playlistToMusicMap.containsKey(musicDetailViewModel.getMusicDetail()
+                        .getPlaylistName()))
+                    playlistToMusicMap.get(musicDetailViewModel.getMusicDetail()
+                            .getPlaylistName())
+                            .add(musicDetailViewModel);
+                else {
+                    List<MusicDetailViewModel> musicDetailViewModelList = new LinkedList<>();
+                    musicDetailViewModelList.add(musicDetailViewModel);
+                    playlistToMusicMap.put(musicDetailViewModel.getMusicDetail()
+                            .getPlaylistName(), musicDetailViewModelList);
+                }
             }
-            MUSIC_PANELS.add(new MusicPanel(musicDetailList));
+            playlistToMusicMap.forEach((k, p) -> MUSIC_PANELS.add(new MusicPanel(p)));
             refreshMusicPanels();
         } catch (IOException e) {
             e.printStackTrace();
@@ -302,8 +313,9 @@ public class ResourceHandler {
     }
 
     private void refreshMusicPanels() {
-        MUSIC_PANELS.sort(Comparator.comparing(p -> p.getMusicDetailList()
+        MUSIC_PANELS.sort(Comparator.comparing(p -> p.getMusicDetailViewModelList()
                 .get(0)
+                .getMusicDetail()
                 .getPlaylistName()));
         MUSIC_PANELS.forEach(p -> {
             if (p.getParent() != null)

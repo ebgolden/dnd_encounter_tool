@@ -38,6 +38,7 @@ public class GUI {
                 windowFrame.getContentPane().add(pdfPanel, BorderLayout.CENTER);
             }
         });
+        windowFrame.pack();
     }
 
     public static void sortCharacterPanels() {
