@@ -173,7 +173,7 @@ public class ResourceHandler {
     }
 
     private int rollInitiative(int initiativeBonus) {
-        int initiative = new Random().nextInt(21);
+        int initiative = new Random().nextInt(20) + 1;
         if (initiative == 20)
             initiative = 100;
         else if (initiative == 1)
