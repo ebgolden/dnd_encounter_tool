@@ -2,16 +2,17 @@ package controller;
 
 import model.CharacterDetail;
 import model.MusicDetail;
+import org.icepdf.ri.common.SwingController;
 import view.*;
 import viewmodel.CharacterDetailViewModel;
 import viewmodel.MusicDetailViewModel;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,30 +23,34 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ResourceHandler {
-    private final JFrame FRAME;
-    private final OperationPanel OPERATION_PANEL;
-    private final InitiativePanel INITIATIVE_PANEL;
+    private static JFrame frame;
+    private static OperationPanel operationPanel;
+    private static InitiativePanel initiativePanel;
     private final SoundPanel SOUND_PANEL;
-    private final List<CharacterPanel> CHARACTER_PANELS;
-    private final List<MusicPanel> MUSIC_PANELS;
-    private double currentTurnInitiative;
-    private boolean addingManually, removingManually;
-    private File encounterFile;
+    private final PDFPanel PDF_PANEL;
+    private static SwingController controller;
+    private static List<CharacterPanel> characterPanels;
+    private static List<MusicPanel> musicPanels;
+    private static double currentTurnInitiative;
+    private static boolean addingManually, removingManually;
+    private static File encounterFile;
 
     public ResourceHandler(JFrame frame) {
-        FRAME = frame;
-        OPERATION_PANEL = new OperationPanel();
-        OPERATION_PANEL.getImportMoreCharactersButton().addActionListener(e -> fileChooser());
-        OPERATION_PANEL.getAddManuallyButton().addActionListener(e -> {
-            OPERATION_PANEL.getAddManuallyButton().setEnabled(false);
+        ResourceHandler.frame = frame;
+        operationPanel = new OperationPanel();
+        operationPanel.getImportMoreCharactersButton().addActionListener(e -> fileChooser());
+        operationPanel.getAddManuallyButton().addActionListener(e -> {
+            operationPanel.getAddManuallyButton().setEnabled(false);
             addCharacterManually();
         });
-        OPERATION_PANEL.getAddMusicButton().addActionListener(e -> addMusic());
-        OPERATION_PANEL.getNextTurnButton().addActionListener(e -> nextTurn());
-        INITIATIVE_PANEL = new InitiativePanel();
+        operationPanel.getAddMusicButton().addActionListener(e -> addMusic());
+        operationPanel.getNextTurnButton().addActionListener(e -> nextTurn());
+        initiativePanel = new InitiativePanel();
         SOUND_PANEL = new SoundPanel();
-        CHARACTER_PANELS = new LinkedList<>();
-        MUSIC_PANELS = new LinkedList<>();
+        PDF_PANEL = new PDFPanel();
+        controller = PDF_PANEL.getController();
+        characterPanels = new LinkedList<>();
+        musicPanels = new LinkedList<>();
         encounterFile = new File("encounter.csv");
         currentTurnInitiative = Integer.MAX_VALUE;
         addingManually = false;
@@ -57,7 +62,7 @@ public class ResourceHandler {
         JFileChooser fc = new JFileChooser();
         fc.setFileFilter(new FileNameExtensionFilter("PDF (*.pdf), CSV (*.csv)", "pdf", "csv"));
         fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        int returnVal = fc.showOpenDialog(FRAME);
+        int returnVal = fc.showOpenDialog(frame);
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             populate(fc.getSelectedFile());
         }
@@ -105,10 +110,10 @@ public class ResourceHandler {
                                     .hitPoints(Integer.parseInt(characterDetailArray[4]))
                                     .file(new File(characterDetailArray[5]))
                                     .build());
-                            CHARACTER_PANELS.add(new CharacterPanel(characterDetailViewModel));
+                            characterPanels.add(new CharacterPanel(characterDetailViewModel));
                         }
                     });
-                    playlistToMusicMap.forEach((k, p) -> MUSIC_PANELS.add(new MusicPanel(p)));
+                    playlistToMusicMap.forEach((k, p) -> musicPanels.add(new MusicPanel(p)));
                 }
             }
             else {
@@ -152,18 +157,18 @@ public class ResourceHandler {
                             .file(file)
                             .build());
                     int finalInitiative = initiative;
-                    CHARACTER_PANELS.forEach(p -> {
+                    characterPanels.forEach(p -> {
                         CharacterDetailViewModel c = p.getCharacterDetailViewModel();
                         if (c.getCharacterDetail().getInitiative() == finalInitiative)
                             characterDetailViewModel.getCharacterDetail()
                                     .setInitiative(finalInitiative + ((rollOffInitiative(characterDetailViewModel.getCharacterDetail()
                                             .getInitiativeBonus(), c.getCharacterDetail().getInitiativeBonus())) ? .5 : -.5));
                     });
-                    CHARACTER_PANELS.add(new CharacterPanel(characterDetailViewModel));
+                    characterPanels.add(new CharacterPanel(characterDetailViewModel));
                 }
             }
             if (currentTurnInitiative == Integer.MAX_VALUE)
-                currentTurnInitiative = CHARACTER_PANELS.get(0)
+                currentTurnInitiative = characterPanels.get(0)
                         .getCharacterDetailViewModel()
                         .getCharacterDetail()
                         .getInitiative();
@@ -195,25 +200,25 @@ public class ResourceHandler {
         return initiative1 > initiative2;
     }
 
-    public void sortCharacterPanels() {
-        CHARACTER_PANELS.sort(Comparator.comparing(p -> p.getCharacterDetailViewModel()
+    public static void sortCharacterPanels() {
+        characterPanels.sort(Comparator.comparing(p -> p.getCharacterDetailViewModel()
                 .getCharacterDetail()
                 .getInitiative()));
-        Collections.reverse(CHARACTER_PANELS);
-        CHARACTER_PANELS.forEach(p -> {
+        Collections.reverse(characterPanels);
+        characterPanels.forEach(p -> {
             if (p.getParent() != null)
-                INITIATIVE_PANEL.remove(p);
+                initiativePanel.remove(p);
             p.setVisible(true);
-            INITIATIVE_PANEL.add(p);
+            initiativePanel.add(p);
         });
         selectCharacterPanelForTurn();
-        FRAME.pack();
+        frame.pack();
         saveToFile();
     }
 
-    private void selectCharacterPanelForTurn() {
-        if (!CHARACTER_PANELS.isEmpty()) {
-            final List<Double> initiatives = CHARACTER_PANELS.stream()
+    private static void selectCharacterPanelForTurn() {
+        if (!characterPanels.isEmpty()) {
+            final List<Double> initiatives = characterPanels.stream()
                     .map(c -> c.getCharacterDetailViewModel()
                             .getCharacterDetail()
                             .getInitiative())
@@ -223,7 +228,7 @@ public class ResourceHandler {
                 if (Math.abs(currentTurnInitiative - initiative) < Math.abs(currentTurnInitiative - closestInitiative))
                     closestInitiative = initiative;
             currentTurnInitiative = closestInitiative;
-            CHARACTER_PANELS.forEach(p -> {
+            characterPanels.forEach(p -> {
                 if (currentTurnInitiative == p.getCharacterDetailViewModel()
                         .getCharacterDetail()
                         .getInitiative())
@@ -239,14 +244,14 @@ public class ResourceHandler {
         }
     }
 
-    private void saveToFile() {
+    private static void saveToFile() {
         try {
             try (PrintWriter pw = new PrintWriter(encounterFile)) {
                 pw.println(currentTurnInitiative);
-                CHARACTER_PANELS.stream()
+                characterPanels.stream()
                         .map(p -> p.getCharacterDetailViewModel().toString())
                         .forEach(pw::println);
-                MUSIC_PANELS.stream()
+                musicPanels.stream()
                         .map(MusicPanel::getMusicDetailViewModelList)
                         .forEach(p -> p.stream()
                                 .map(MusicDetailViewModel::toString)
@@ -262,10 +267,10 @@ public class ResourceHandler {
         if (!addingManually) {
             addingManually = true;
             CharacterPanel characterPanel = new CharacterPanel();
-            CHARACTER_PANELS.add(characterPanel);
+            characterPanels.add(characterPanel);
             characterPanel.setVisible(true);
-            INITIATIVE_PANEL.add(characterPanel, 0);
-            FRAME.pack();
+            initiativePanel.add(characterPanel, 0);
+            frame.pack();
         }
     }
 
@@ -273,7 +278,7 @@ public class ResourceHandler {
         JFileChooser fc = new JFileChooser();
         fc.setFileFilter(new FileNameExtensionFilter("WAV (*.wav)", "wav"));
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int returnVal = fc.showOpenDialog(FRAME);
+        int returnVal = fc.showOpenDialog(frame);
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             populateMusic(fc.getSelectedFile());
         }
@@ -305,7 +310,7 @@ public class ResourceHandler {
                             .getPlaylistName(), musicDetailViewModelList);
                 }
             }
-            playlistToMusicMap.forEach((k, p) -> MUSIC_PANELS.add(new MusicPanel(p)));
+            playlistToMusicMap.forEach((k, p) -> musicPanels.add(new MusicPanel(p)));
             refreshMusicPanels();
         } catch (IOException e) {
             e.printStackTrace();
@@ -313,37 +318,37 @@ public class ResourceHandler {
     }
 
     private void refreshMusicPanels() {
-        MUSIC_PANELS.sort(Comparator.comparing(p -> p.getMusicDetailViewModelList()
+        musicPanels.sort(Comparator.comparing(p -> p.getMusicDetailViewModelList()
                 .get(0)
                 .getMusicDetail()
                 .getPlaylistName()));
-        MUSIC_PANELS.forEach(p -> {
+        musicPanels.forEach(p -> {
             if (p.getParent() != null)
                 SOUND_PANEL.remove(p);
             p.setVisible(true);
             SOUND_PANEL.add(p);
         });
-        FRAME.pack();
+        frame.pack();
         saveToFile();
     }
 
     public void nextTurn() {
-        if (!CHARACTER_PANELS.isEmpty()) {
+        if (!characterPanels.isEmpty()) {
             if (currentTurnInitiative == Integer.MAX_VALUE)
-                currentTurnInitiative = CHARACTER_PANELS.get(0)
+                currentTurnInitiative = characterPanels.get(0)
                         .getCharacterDetailViewModel()
                         .getCharacterDetail()
                         .getInitiative();
             else {
-                for (int i = 0; i < CHARACTER_PANELS.size(); ++i) {
-                    CharacterDetailViewModel characterDetailViewModel = CHARACTER_PANELS.get(i).getCharacterDetailViewModel();
+                for (int i = 0; i < characterPanels.size(); ++i) {
+                    CharacterDetailViewModel characterDetailViewModel = characterPanels.get(i).getCharacterDetailViewModel();
                     if (currentTurnInitiative == characterDetailViewModel.getCharacterDetail().getInitiative()) {
-                        if (i == (CHARACTER_PANELS.size() - 1))
-                            currentTurnInitiative = CHARACTER_PANELS.get(0)
+                        if (i == (characterPanels.size() - 1))
+                            currentTurnInitiative = characterPanels.get(0)
                                     .getCharacterDetailViewModel()
                                     .getCharacterDetail()
                                     .getInitiative();
-                        else currentTurnInitiative = CHARACTER_PANELS.get(i + 1)
+                        else currentTurnInitiative = characterPanels.get(i + 1)
                                 .getCharacterDetailViewModel()
                                 .getCharacterDetail()
                                 .getInitiative();
@@ -356,50 +361,58 @@ public class ResourceHandler {
         }
     }
 
-    public void removeCharacterFromInitiative(CharacterPanel characterPanel) {
+    public static void removeCharacterFromInitiative(CharacterPanel characterPanel) {
         if (!removingManually) {
             removingManually = true;
             JButton verifyDelete = new JButton("Remove?");
             JButton cancelRemove = new JButton("Cancel");
             verifyDelete.addActionListener(e -> {
                 removingManually = false;
-                INITIATIVE_PANEL.remove(characterPanel);
-                CHARACTER_PANELS.remove(characterPanel);
+                initiativePanel.remove(characterPanel);
+                characterPanels.remove(characterPanel);
                 characterPanel.setVisible(false);
                 sortCharacterPanels();
-                INITIATIVE_PANEL.remove(verifyDelete);
-                INITIATIVE_PANEL.remove(cancelRemove);
+                initiativePanel.remove(verifyDelete);
+                initiativePanel.remove(cancelRemove);
             });
             cancelRemove.addActionListener(e -> {
                 removingManually = false;
-                INITIATIVE_PANEL.remove(verifyDelete);
-                INITIATIVE_PANEL.remove(cancelRemove);
-                FRAME.pack();
+                initiativePanel.remove(verifyDelete);
+                initiativePanel.remove(cancelRemove);
+                frame.pack();
             });
-            INITIATIVE_PANEL.add(verifyDelete);
-            INITIATIVE_PANEL.add(cancelRemove);
-            FRAME.pack();
+            initiativePanel.add(verifyDelete);
+            initiativePanel.add(cancelRemove);
+            frame.pack();
         }
     }
 
-    public void finishAddingManually() {
+    public static void finishAddingManually() {
         addingManually = false;
-        OPERATION_PANEL.getAddManuallyButton().setEnabled(true);
+        operationPanel.getAddManuallyButton().setEnabled(true);
     }
 
-    public void stopAllMusic() {
-        MUSIC_PANELS.forEach(MusicPanel::pause);
+    public static void stopAllMusic() {
+        musicPanels.forEach(MusicPanel::pause);
+    }
+
+    public static void viewCharacterSheet(File file) throws MalformedURLException {
+        controller.openDocument(file.toURI().toURL());
     }
 
     public OperationPanel getOperationPanel() {
-        return OPERATION_PANEL;
+        return operationPanel;
     }
 
     public InitiativePanel getInitiativePanel() {
-        return INITIATIVE_PANEL;
+        return initiativePanel;
     }
 
     public SoundPanel getSoundPanel() {
         return SOUND_PANEL;
+    }
+
+    public PDFPanel getPDFPanel() {
+        return PDF_PANEL;
     }
 }

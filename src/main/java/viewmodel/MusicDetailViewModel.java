@@ -1,7 +1,6 @@
 package viewmodel;
 
 import model.MusicDetail;
-
 import java.io.File;
 
 public class MusicDetailViewModel {

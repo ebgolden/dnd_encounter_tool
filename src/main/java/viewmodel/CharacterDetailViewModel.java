@@ -1,7 +1,6 @@
 package viewmodel;
 
 import model.CharacterDetail;
-
 import java.io.File;
 
 public class CharacterDetailViewModel {

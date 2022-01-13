@@ -1,9 +1,9 @@
 package view;
 
 import org.icepdf.ri.common.ComponentKeyBinding;
+import org.icepdf.ri.common.MyAnnotationCallback;
 import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -19,7 +19,7 @@ public class PDFPanel extends JPanel {
         viewerComponentPanel.setMaximumSize(new Dimension(400, 243));
         ComponentKeyBinding.install(CONTROLLER, viewerComponentPanel);
         CONTROLLER.getDocumentViewController().setAnnotationCallback(
-                new org.icepdf.ri.common.MyAnnotationCallback(
+                new MyAnnotationCallback(
                         CONTROLLER.getDocumentViewController()));
         super.add(viewerComponentPanel, BorderLayout.CENTER);
         super.invalidate();
