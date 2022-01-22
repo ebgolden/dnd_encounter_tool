@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.List;
 
 public class PlaylistController {
+    private final MusicController MUSIC_CONTROLLER;
     private final List<MusicDetailViewModel> PLAYLIST;
     private final String PLAYLIST_NAME;
     private int currentMusicIndex;
@@ -16,7 +17,8 @@ public class PlaylistController {
     private long clipTimePosition;
     private boolean playback;
 
-    public PlaylistController(List<MusicDetailViewModel> playlist) {
+    public PlaylistController(MusicController musicController, List<MusicDetailViewModel> playlist) {
+        MUSIC_CONTROLLER = musicController;
         PLAYLIST = playlist;
         currentMusicIndex = 0;
         for (int musicIndex = 0; musicIndex < PLAYLIST.size(); ++musicIndex) {
@@ -45,7 +47,7 @@ public class PlaylistController {
     }
 
     public void play() {
-        FileController.stopAllMusic();
+        MUSIC_CONTROLLER.stopAllMusic();
         try {
             if (file.exists() && !playback) {
                 toggleMusic(true);

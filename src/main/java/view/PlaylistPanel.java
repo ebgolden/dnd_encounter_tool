@@ -1,5 +1,6 @@
 package view;
 
+import controller.MusicController;
 import controller.PlaylistController;
 import viewmodel.MusicDetailViewModel;
 import javax.swing.*;
@@ -10,9 +11,9 @@ public class PlaylistPanel extends JPanel {
     private final PlaylistController PLAYLIST_CONTROLLER;
     private final JButton PLAYBACK_BUTTON;
 
-    public PlaylistPanel(List<MusicDetailViewModel> musicDetailViewModelList) {
+    public PlaylistPanel(MusicController musicController, List<MusicDetailViewModel> musicDetailViewModelList) {
         super();
-        PLAYLIST_CONTROLLER = new PlaylistController(musicDetailViewModelList);
+        PLAYLIST_CONTROLLER = new PlaylistController(musicController, musicDetailViewModelList);
         JButton previousButton = new JButton("Back");
         super.add(previousButton);
         previousButton.setEnabled(PLAYLIST_CONTROLLER.isPrevious());

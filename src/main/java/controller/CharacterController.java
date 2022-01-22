@@ -5,11 +5,15 @@ import view.CharacterPanel;
 import viewmodel.CharacterDetailViewModel;
 
 public class CharacterController {
+    private final InitiativeController INITIATIVE_CONTROLLER;
+    private final PDFController PDF_CONTROLLER;
     private final CharacterDetailViewModel CHARACTER_DETAIL_VIEW_MODEL;
     private final StringUtils STRING_UTILS;
     private boolean addingManually;
 
-    public CharacterController(CharacterDetailViewModel characterDetailViewModel) {
+    public CharacterController(InitiativeController initiativeController, PDFController pdfController, CharacterDetailViewModel characterDetailViewModel) {
+        INITIATIVE_CONTROLLER = initiativeController;
+        PDF_CONTROLLER = pdfController;
         CHARACTER_DETAIL_VIEW_MODEL = characterDetailViewModel;
         STRING_UTILS = new StringUtils();
         addingManually = getCharacterName() == null;
@@ -82,12 +86,12 @@ public class CharacterController {
 
     private void updateCharacterPanels() {
         if (!addingManually)
-            FileController.sortCharacterPanels();
+            INITIATIVE_CONTROLLER.sortCharacterPanels();
     }
 
     public void viewCharacterSheet() {
         try {
-            FileController.viewCharacterSheet(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getFile());
+            PDF_CONTROLLER.viewCharacterSheet(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getFile());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -95,12 +99,12 @@ public class CharacterController {
 
     public void removeCharacterFromInitiative(CharacterPanel characterPanel) {
         finishAddingManually();
-        FileController.removeCharacterFromInitiative(characterPanel);
+        INITIATIVE_CONTROLLER.removeCharacterFromInitiative(characterPanel);
     }
 
     public void finishAddingManually() {
         addingManually = false;
-        FileController.finishAddingManually();
+        INITIATIVE_CONTROLLER.finishAddingManually();
         updateCharacterPanels();
     }
 

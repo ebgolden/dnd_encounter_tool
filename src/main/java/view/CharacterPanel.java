@@ -1,6 +1,8 @@
 package view;
 
 import controller.CharacterController;
+import controller.InitiativeController;
+import controller.PDFController;
 import model.CharacterDetail;
 import utils.TextFieldFactory;
 import viewmodel.CharacterDetailViewModel;
@@ -10,13 +12,13 @@ import java.awt.*;
 public class CharacterPanel extends JPanel {
     private final CharacterController CHARACTER_CONTROLLER;
 
-    public CharacterPanel() {
-        this(new CharacterDetailViewModel(CharacterDetail.builder().build()));
+    public CharacterPanel(InitiativeController initiativeController, PDFController pdfController) {
+        this(initiativeController, pdfController, new CharacterDetailViewModel(CharacterDetail.builder().build()));
     }
 
-    public CharacterPanel(CharacterDetailViewModel characterDetailViewModel) {
+    public CharacterPanel(InitiativeController initiativeController, PDFController pdfController, CharacterDetailViewModel characterDetailViewModel) {
         super();
-        CHARACTER_CONTROLLER = new CharacterController(characterDetailViewModel);
+        CHARACTER_CONTROLLER = new CharacterController(initiativeController, pdfController, characterDetailViewModel);
         TextFieldFactory TEXT_FIELD_FACTORY = new TextFieldFactory();
         JTextField CHARACTER_NAME_FIELD = TEXT_FIELD_FACTORY.getTextField(CHARACTER_CONTROLLER.getCharacterName());
         TEXT_FIELD_FACTORY.addListeners(CHARACTER_NAME_FIELD, () -> {
