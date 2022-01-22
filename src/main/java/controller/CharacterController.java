@@ -4,12 +4,12 @@ import utils.StringUtils;
 import view.CharacterPanel;
 import viewmodel.CharacterDetailViewModel;
 
-public class InitiativeController {
+public class CharacterController {
     private final CharacterDetailViewModel CHARACTER_DETAIL_VIEW_MODEL;
     private final StringUtils STRING_UTILS;
     private boolean addingManually;
 
-    public InitiativeController(CharacterDetailViewModel characterDetailViewModel) {
+    public CharacterController(CharacterDetailViewModel characterDetailViewModel) {
         CHARACTER_DETAIL_VIEW_MODEL = characterDetailViewModel;
         STRING_UTILS = new StringUtils();
         addingManually = getCharacterName() == null;
@@ -82,12 +82,12 @@ public class InitiativeController {
 
     private void updateCharacterPanels() {
         if (!addingManually)
-            ResourceHandler.sortCharacterPanels();
+            FileController.sortCharacterPanels();
     }
 
     public void viewCharacterSheet() {
         try {
-            ResourceHandler.viewCharacterSheet(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getFile());
+            FileController.viewCharacterSheet(CHARACTER_DETAIL_VIEW_MODEL.getCharacterDetail().getFile());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -95,12 +95,12 @@ public class InitiativeController {
 
     public void removeCharacterFromInitiative(CharacterPanel characterPanel) {
         finishAddingManually();
-        ResourceHandler.removeCharacterFromInitiative(characterPanel);
+        FileController.removeCharacterFromInitiative(characterPanel);
     }
 
     public void finishAddingManually() {
         addingManually = false;
-        ResourceHandler.finishAddingManually();
+        FileController.finishAddingManually();
         updateCharacterPanels();
     }
 

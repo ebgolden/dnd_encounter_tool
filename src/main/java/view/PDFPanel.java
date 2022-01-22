@@ -1,33 +1,23 @@
 package view;
 
-import org.icepdf.ri.common.ComponentKeyBinding;
-import org.icepdf.ri.common.MyAnnotationCallback;
-import org.icepdf.ri.common.SwingController;
-import org.icepdf.ri.common.SwingViewBuilder;
+import controller.PDFController;
 import javax.swing.*;
 import java.awt.*;
 
 public class PDFPanel extends JPanel {
-    private final SwingController CONTROLLER;
+    private final PDFController PDF_CONTROLLER;
 
     public PDFPanel() {
         super(new BorderLayout());
-        CONTROLLER = new SwingController();
-        SwingViewBuilder factory = new SwingViewBuilder(CONTROLLER);
-        JPanel viewerComponentPanel = factory.buildViewerPanel();
+        PDF_CONTROLLER = new PDFController();
+        JPanel viewerComponentPanel = PDF_CONTROLLER.getViewerComponentPanel();
         viewerComponentPanel.setPreferredSize(new Dimension(400, 243));
         viewerComponentPanel.setMaximumSize(new Dimension(400, 243));
-        ComponentKeyBinding.install(CONTROLLER, viewerComponentPanel);
-        CONTROLLER.getDocumentViewController().setAnnotationCallback(
-                new MyAnnotationCallback(
-                        CONTROLLER.getDocumentViewController()));
         super.add(viewerComponentPanel, BorderLayout.CENTER);
         super.invalidate();
-        System.setProperty("org.icepdf.core.nfont.truetype.hinting", "true");
-        System.setProperty("org.icepdf.core.awtFontLoading", "true");
     }
 
-    public SwingController getController() {
-        return CONTROLLER;
+    public PDFController getPDFController() {
+        return PDF_CONTROLLER;
     }
 }

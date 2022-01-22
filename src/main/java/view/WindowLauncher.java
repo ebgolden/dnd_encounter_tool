@@ -1,6 +1,6 @@
 package view;
 
-import controller.ResourceHandler;
+import controller.FileController;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -11,12 +11,12 @@ public class WindowLauncher {
         JFrame windowFrame = new JFrame();
         windowFrame.setLayout(new BorderLayout());
         windowFrame.setVisible(true);
-        ResourceHandler resourceHandler = new ResourceHandler(windowFrame);
+        FileController fileController = new FileController(windowFrame);
         JPanel interactivePanel = new JPanel(new VerticalFlowLayout());
-        interactivePanel.add(resourceHandler.getOperationPanel());
-        interactivePanel.add(resourceHandler.getInitiativePanel());
-        interactivePanel.add(resourceHandler.getSoundPanel());
-        PDFPanel pdfPanel = resourceHandler.getPDFPanel();
+        interactivePanel.add(fileController.getOperationPanel());
+        interactivePanel.add(fileController.getInitiativePanel());
+        interactivePanel.add(fileController.getSoundPanel());
+        PDFPanel pdfPanel = fileController.getPDFPanel();
         windowFrame.add(interactivePanel, BorderLayout.WEST);
         windowFrame.add(pdfPanel, BorderLayout.EAST);
         windowFrame.addComponentListener(new ComponentAdapter() {

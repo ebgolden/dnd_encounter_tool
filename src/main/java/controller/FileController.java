@@ -2,7 +2,6 @@ package controller;
 
 import model.CharacterDetail;
 import model.MusicDetail;
-import org.icepdf.ri.common.SwingController;
 import view.*;
 import viewmodel.CharacterDetailViewModel;
 import viewmodel.MusicDetailViewModel;
@@ -22,21 +21,21 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ResourceHandler {
+public class FileController {
     private static JFrame frame;
     private static OperationPanel operationPanel;
     private static InitiativePanel initiativePanel;
-    private final SoundPanel SOUND_PANEL;
+    private final MusicPanel SOUND_PANEL;
     private final PDFPanel PDF_PANEL;
-    private static SwingController controller;
+    private static PDFController pdfController;
     private static List<CharacterPanel> characterPanels;
-    private static List<MusicPanel> musicPanels;
+    private static List<PlaylistPanel> playlistPanels;
     private static double currentTurnInitiative;
     private static boolean addingManually, removingManually;
     private static File encounterFile;
 
-    public ResourceHandler(JFrame frame) {
-        ResourceHandler.frame = frame;
+    public FileController(JFrame frame) {
+        FileController.frame = frame;
         operationPanel = new OperationPanel();
         operationPanel.getImportMoreCharactersButton().addActionListener(e -> fileChooser());
         operationPanel.getAddManuallyButton().addActionListener(e -> {
@@ -46,11 +45,11 @@ public class ResourceHandler {
         operationPanel.getAddMusicButton().addActionListener(e -> addMusic());
         operationPanel.getNextTurnButton().addActionListener(e -> nextTurn());
         initiativePanel = new InitiativePanel();
-        SOUND_PANEL = new SoundPanel();
+        SOUND_PANEL = new MusicPanel();
         PDF_PANEL = new PDFPanel();
-        controller = PDF_PANEL.getController();
+        pdfController = PDF_PANEL.getPDFController();
         characterPanels = new LinkedList<>();
-        musicPanels = new LinkedList<>();
+        playlistPanels = new LinkedList<>();
         encounterFile = new File("encounter.csv");
         currentTurnInitiative = Integer.MAX_VALUE;
         addingManually = false;
@@ -113,7 +112,7 @@ public class ResourceHandler {
                             characterPanels.add(new CharacterPanel(characterDetailViewModel));
                         }
                     });
-                    playlistToMusicMap.forEach((k, p) -> musicPanels.add(new MusicPanel(p)));
+                    playlistToMusicMap.forEach((k, p) -> playlistPanels.add(new PlaylistPanel(p)));
                 }
             }
             else {
@@ -251,8 +250,8 @@ public class ResourceHandler {
                 characterPanels.stream()
                         .map(p -> p.getCharacterDetailViewModel().toString())
                         .forEach(pw::println);
-                musicPanels.stream()
-                        .map(MusicPanel::getMusicDetailViewModelList)
+                playlistPanels.stream()
+                        .map(PlaylistPanel::getMusicDetailViewModelList)
                         .forEach(p -> p.stream()
                                 .map(MusicDetailViewModel::toString)
                                 .forEach(pw::println));
@@ -310,7 +309,7 @@ public class ResourceHandler {
                             .getPlaylistName(), musicDetailViewModelList);
                 }
             }
-            playlistToMusicMap.forEach((k, p) -> musicPanels.add(new MusicPanel(p)));
+            playlistToMusicMap.forEach((k, p) -> playlistPanels.add(new PlaylistPanel(p)));
             refreshMusicPanels();
         } catch (IOException e) {
             e.printStackTrace();
@@ -318,11 +317,11 @@ public class ResourceHandler {
     }
 
     private void refreshMusicPanels() {
-        musicPanels.sort(Comparator.comparing(p -> p.getMusicDetailViewModelList()
+        playlistPanels.sort(Comparator.comparing(p -> p.getMusicDetailViewModelList()
                 .get(0)
                 .getMusicDetail()
                 .getPlaylistName()));
-        musicPanels.forEach(p -> {
+        playlistPanels.forEach(p -> {
             if (p.getParent() != null)
                 SOUND_PANEL.remove(p);
             p.setVisible(true);
@@ -393,11 +392,11 @@ public class ResourceHandler {
     }
 
     public static void stopAllMusic() {
-        musicPanels.forEach(MusicPanel::pause);
+        playlistPanels.forEach(PlaylistPanel::pause);
     }
 
     public static void viewCharacterSheet(File file) throws MalformedURLException {
-        controller.openDocument(file.toURI().toURL());
+        pdfController.viewCharacterSheet(file);
     }
 
     public OperationPanel getOperationPanel() {
@@ -408,7 +407,7 @@ public class ResourceHandler {
         return initiativePanel;
     }
 
-    public SoundPanel getSoundPanel() {
+    public MusicPanel getSoundPanel() {
         return SOUND_PANEL;
     }
 

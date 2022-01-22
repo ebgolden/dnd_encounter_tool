@@ -7,7 +7,7 @@ import javax.sound.sampled.Clip;
 import java.io.File;
 import java.util.List;
 
-public class AudioController {
+public class PlaylistController {
     private final List<MusicDetailViewModel> PLAYLIST;
     private final String PLAYLIST_NAME;
     private int currentMusicIndex;
@@ -16,7 +16,7 @@ public class AudioController {
     private long clipTimePosition;
     private boolean playback;
 
-    public AudioController(List<MusicDetailViewModel> playlist) {
+    public PlaylistController(List<MusicDetailViewModel> playlist) {
         PLAYLIST = playlist;
         currentMusicIndex = 0;
         for (int musicIndex = 0; musicIndex < PLAYLIST.size(); ++musicIndex) {
@@ -45,7 +45,7 @@ public class AudioController {
     }
 
     public void play() {
-        ResourceHandler.stopAllMusic();
+        FileController.stopAllMusic();
         try {
             if (file.exists() && !playback) {
                 toggleMusic(true);
